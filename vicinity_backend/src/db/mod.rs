@@ -1,3 +1,10 @@
-//Database Module Exports
-// Export the queries sub-module
-pub mod queries;
+use sqlx::{PgPool, postgres::PgPoolOptions};
+use std::env;
+
+pub async fn create_pool() -> PgPool {
+    PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&env::var("DATABASE_URL").expect("DATABASE_URL must be set"))
+        .await
+        .expect("Database connection failed")
+}
