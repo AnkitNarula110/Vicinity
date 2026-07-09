@@ -4,6 +4,7 @@ import { UserProfile } from "../types";
 const KEYS = {
   AUTH: "vicinity_auth",
   PROFILE: "vicinity_profile",
+  USER_DATA: "userData",
 };
 
 // ─── Auth ──────────────────────────────────────────────────────────────────────
@@ -39,6 +40,17 @@ export async function loadProfile(): Promise<UserProfile | null> {
     return null;
   }
 }
+
+export const loadUserData = async (): Promise<UserProfile | null> => {
+  try {
+    const raw = await AsyncStorage.getItem(KEYS.USER_DATA);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    return null;
+  }
+};
 
 // ─── Clear everything (logout) ────────────────────────────────────────────────
 export async function clearAll(): Promise<void> {

@@ -89,3 +89,33 @@ export interface CompleteRegistrationRequest {
   address: string | null;
   onboarding_data: OnboardingData;
 }
+
+export interface LoginRequest {
+  login: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  base_response: BaseResponse;
+  user_data: UserData;
+}
+
+interface BaseResponse {
+  success: boolean;
+  message: String;
+}
+
+export interface UserData {
+  userid: string;
+  username: string;
+  email: string;
+  dob: Date | null;
+  password: string;
+  aadharnumber: string | null;
+  address: string | null;
+  isactive: boolean;
+  createddate: Date;
+  phone: string;
+  onboarding_data: Record<string, any>;
+  completed_onboarding: boolean;
+}

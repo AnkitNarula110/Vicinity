@@ -19,7 +19,7 @@ import {
 } from "@expo-google-fonts/inter";
 
 import { V } from "./src/theme/colors";
-import { loadAuth, loadProfile } from "./src/storage/userStore";
+import { loadAuth, loadProfile, loadUserData } from "./src/storage/userStore";
 import { UserProfile, Person, Match } from "./src/types";
 
 // Screens
@@ -82,8 +82,10 @@ export default function App() {
   useEffect(() => {
     (async () => {
       const auth = await loadAuth();
+      const userData = await loadUserData();
       const profile = await loadProfile();
-      if (auth && profile) {
+      console.log({ userData });
+      if (userData) {
         setUserProfile(profile);
         setAppState("main");
       } else if (auth) {
@@ -236,6 +238,7 @@ export default function App() {
     if (appState === "auth") {
       return renderAuthFlow();
     }
+    console.log({ appState });
 
     // First-time onboarding — fullscreen, no tabs
     if (appState === "onboarding") {
