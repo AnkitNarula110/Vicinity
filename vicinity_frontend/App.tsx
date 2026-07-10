@@ -81,10 +81,10 @@ export default function App() {
   // ── Boot: check AsyncStorage ─────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
+      debugger;
       const auth = await loadAuth();
       const userData = await loadUserData();
       const profile = await loadProfile();
-      console.log({ userData });
       if (userData) {
         setUserProfile(profile);
         setAppState("main");
@@ -97,7 +97,7 @@ export default function App() {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
-  const handleLogin = () => setAppState("onboarding");
+  const handleLogin = () => setAppState("main");
   const handleRegisterSuccess = () => setAppState("onboarding");
 
   const handleOnboardingComplete = (data: UserProfile) => {
@@ -238,7 +238,6 @@ export default function App() {
     if (appState === "auth") {
       return renderAuthFlow();
     }
-    console.log({ appState });
 
     // First-time onboarding — fullscreen, no tabs
     if (appState === "onboarding") {

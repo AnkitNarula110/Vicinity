@@ -18,6 +18,7 @@ import { V } from "../theme/colors";
 import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { login } from "../api/authApi";
+import { saveProfile } from "../storage/userStore";
 
 // ─── Email validator ───────────────────────────────────────────────────────────
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -315,21 +316,17 @@ export default function LoginScreen({
 
     setLoading(true);
     try {
-      console.log({ loginIdentifier });
       // Send the login identifier (could be email, username, or phone)
       const response = await login({
         login: loginIdentifier.trim(), // This can be email, username, or phone
         password: password,
       });
-      console.log({ response });
 
       // Store the token and user data
       if (response.base_response.success) {
+        debugger;
         //await AsyncStorage.setItem("authToken", response.token);
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify(response.user_data),
-        );
+        await saveProfile(JSON.stringify(response.user_data.onboarding_data));
       }
 
       onLogin();

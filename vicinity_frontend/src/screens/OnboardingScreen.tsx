@@ -1398,7 +1398,7 @@ export default function OnboardingScreen({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state — pre-fill from initialData if editing
-  const [name, setName] = useState(initialData?.name ?? "");
+  const [name, setName] = useState(initialData?.full_name ?? "");
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(
     initialData?.dateOfBirth ? new Date(initialData.dateOfBirth) : null,
   );
@@ -1642,7 +1642,7 @@ export default function OnboardingScreen({
 
       // Save profile locally
       const profile: UserProfile = {
-        name: onboardingData.full_name,
+        full_name: onboardingData.full_name,
         dateOfBirth: dateOfBirth?.toISOString() || new Date().toISOString(),
         college: onboardingData.college,
         playlist: onboardingData.playlist,
@@ -1668,7 +1668,7 @@ export default function OnboardingScreen({
         picsUnlocked: false,
       };
 
-      await saveProfile(profile);
+      await saveProfile(JSON.stringify(profile));
       onComplete(profile);
     } catch (error: any) {
       console.error("Error completing registration:", error);

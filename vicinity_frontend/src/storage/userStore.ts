@@ -28,8 +28,9 @@ export async function loadAuth(): Promise<{
 }
 
 // ─── Profile ───────────────────────────────────────────────────────────────────
-export async function saveProfile(profile: UserProfile): Promise<void> {
-  await AsyncStorage.setItem(KEYS.PROFILE, JSON.stringify(profile));
+export async function saveProfile(profile: string): Promise<void> {
+  debugger;
+  await AsyncStorage.setItem(KEYS.PROFILE, profile);
 }
 
 export async function loadProfile(): Promise<UserProfile | null> {
