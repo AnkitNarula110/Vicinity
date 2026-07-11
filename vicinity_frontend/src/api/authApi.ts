@@ -12,7 +12,7 @@ export const completeRegistration = async (
       },
       body: JSON.stringify(data),
     });
-
+    console.log({ response });
     if (!response.ok) {
       const errorData = await response.text();
       throw new Error(errorData || "Registration failed");
