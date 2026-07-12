@@ -11,6 +11,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { clearAll } from '../storage/userStore';
 import { UserProfile } from '../types';
 
+function calculateAge(dobString?: string): number {
+  if (!dobString) return 0;
+  const birthDate = new Date(dobString);
+  if (isNaN(birthDate.getTime())) return 0;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 // ─── Section Label ─────────────────────────────────────────────────────────────
 interface LabelProps {
   text: string;
@@ -105,7 +118,7 @@ export default function MyProfileScreen({ profile, onEditProfile, onLogout, onBa
             )}
           </View>
           <View style={s.heroInfo}>
-            <Text style={s.heroName}>{profile.name}, {profile.age}</Text>
+            <Text style={s.heroName}>{profile.name}, {calculateAge(profile.dateOfBirth)}</Text>
             <Text style={s.heroCollege}>{profile.college}</Text>
             <View style={{ flexDirection:'row', gap:8, marginTop:8, flexWrap:'wrap' }}>
               {profile.intent && (

@@ -112,10 +112,23 @@ const inp = StyleSheet.create({
 interface LoginScreenProps {
   onLogin: () => void;
   onNavigateToRegister: () => void;
+  onNavigateToForgotPassword: () => void;
+  initialEmailOrPhone?: string;
 }
 
-export default function LoginScreen({ onLogin, onNavigateToRegister }: LoginScreenProps) {
-  const [email,    setEmail]    = useState('');
+export default function LoginScreen({
+  onLogin,
+  onNavigateToRegister,
+  onNavigateToForgotPassword,
+  initialEmailOrPhone,
+}: LoginScreenProps) {
+  const [email,    setEmail]    = useState(initialEmailOrPhone || '');
+
+  useEffect(() => {
+    if (initialEmailOrPhone) {
+      setEmail(initialEmailOrPhone);
+    }
+  }, [initialEmailOrPhone]);
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [errors,   setErrors]   = useState<Record<string, string>>({});
@@ -198,7 +211,7 @@ export default function LoginScreen({ onLogin, onNavigateToRegister }: LoginScre
         />
         {errors.password ? <Text style={s.errText}>{errors.password}</Text> : <View style={{ height:4 }} />}
 
-        <Pressable style={s.forgotBtn}>
+        <Pressable onPress={onNavigateToForgotPassword} style={s.forgotBtn}>
           <Text style={s.forgotText}>Forgot password?</Text>
         </Pressable>
 

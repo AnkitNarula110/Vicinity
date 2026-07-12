@@ -420,7 +420,7 @@ function SettingsSheet({ visible, onClose, accent, settings, setSettings }: Sett
 }
 
 const sh = StyleSheet.create({
-  backdrop:    { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.72)' },
+  backdrop:    { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.72)' },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
