@@ -5,10 +5,9 @@ interface BouncyButtonProps {
   children: React.ReactNode;
   onTap?: () => void;
   style?: StyleProp<ViewStyle>;
-  disabled?: boolean;
 }
 
-export default function BouncyButton({ children, onTap, style, disabled }: BouncyButtonProps) {
+export default function BouncyButton({ children, onTap, style }: BouncyButtonProps) {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -27,10 +26,9 @@ export default function BouncyButton({ children, onTap, style, disabled }: Bounc
 
   return (
     <Pressable
-      onPress={disabled ? undefined : onTap}
-      onPressIn={disabled ? undefined : handlePressIn}
-      onPressOut={disabled ? undefined : handlePressOut}
-      disabled={disabled}
+      onPress={onTap}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
     >
       <Animated.View style={[style, { transform: [{ scale: scaleValue }] }]}>
         {children}
