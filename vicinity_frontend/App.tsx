@@ -19,7 +19,7 @@ import {
 } from "@expo-google-fonts/inter";
 
 import { V } from "./src/theme/colors";
-import { loadAuth, loadProfile, saveAuth, saveProfile, loadUserData } from "./src/storage/userStore";
+import { loadAuth, loadProfile, loadUserData } from "./src/storage/userStore";
 import { UserProfile, Person, Match } from "./src/types";
 
 // Screens
@@ -32,7 +32,6 @@ import MyProfileScreen from "./src/screens/MyProfileScreen";
 import ProfileDetailScreen from "./src/screens/ProfileDetailScreen";
 import ChatScreen from "./src/screens/ChatScreen";
 import CompassScreen from "./src/screens/CompassScreen";
-import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 
 // Components
 import BottomTabBar from "./src/components/BottomTabBar";
@@ -66,10 +65,9 @@ export default function App() {
   const [unreadMatches, setUnreadMatches] = useState(1); // demo: 1 unread
 
   // Auth sub-screen
-  const [authScreen, setAuthScreen] = useState<"login" | "create_account" | "forgot_password">(
+  const [authScreen, setAuthScreen] = useState<"login" | "create_account">(
     "login",
   );
-  const [prefilledEmailOrPhone, setPrefilledEmailOrPhone] = useState<string>("");
 
   // Overlays (shown above tabs)
   const [overlay, setOverlay] = useState<OverlayName>(null);
@@ -101,14 +99,6 @@ export default function App() {
   // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleLogin = () => setAppState("main");
   const handleRegisterSuccess = () => setAppState("onboarding");
-
-  const handleDirectLogin = async (profile: UserProfile, email: string) => {
-    await saveAuth(email);
-    await saveProfile(profile);
-    setUserProfile(profile);
-    setAppState("main");
-    setActiveTab("nearby");
-  };
 
   const handleOnboardingComplete = (data: UserProfile) => {
     setUserProfile(data);
@@ -161,23 +151,10 @@ export default function App() {
         />
       );
     }
-    if (authScreen === "forgot_password") {
-      return (
-        <ForgotPasswordScreen
-          onBackToLogin={(email) => {
-            if (email) setPrefilledEmailOrPhone(email);
-            setAuthScreen("login");
-          }}
-          onDirectLogin={handleDirectLogin}
-        />
-      );
-    }
     return (
       <LoginScreen
         onLogin={handleLogin}
         onNavigateToRegister={() => setAuthScreen("create_account")}
-        onNavigateToForgotPassword={() => setAuthScreen("forgot_password")}
-        initialEmailOrPhone={prefilledEmailOrPhone}
       />
     );
   };
