@@ -19,7 +19,7 @@ import {
 } from "@expo-google-fonts/inter";
 
 import { V } from "./src/theme/colors";
-import { loadAuth, loadProfile, saveAuth, saveProfile } from "./src/storage/userStore";
+import { loadAuth, loadProfile, saveAuth, saveProfile, loadUserData } from "./src/storage/userStore";
 import { UserProfile, Person, Match } from "./src/types";
 
 // Screens
@@ -83,9 +83,11 @@ export default function App() {
   // ── Boot: check AsyncStorage ─────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
+      debugger;
       const auth = await loadAuth();
+      const userData = await loadUserData();
       const profile = await loadProfile();
-      if (auth && profile) {
+      if (userData) {
         setUserProfile(profile);
         setAppState("main");
       } else if (auth) {
@@ -97,7 +99,7 @@ export default function App() {
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
-  const handleLogin = () => setAppState("onboarding");
+  const handleLogin = () => setAppState("main");
   const handleRegisterSuccess = () => setAppState("onboarding");
 
   const handleDirectLogin = async (profile: UserProfile, email: string) => {
