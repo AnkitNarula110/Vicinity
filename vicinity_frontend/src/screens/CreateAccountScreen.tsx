@@ -242,13 +242,26 @@ export default function CreateAccountScreen({
   const validate = () => {
     const errs: Record<string, string> = {};
     if (step === 0) {
-      if (!username.trim()) errs.username = "Please enter a username.";
-      if (!phone.trim()) errs.phone = "Please enter your phone number.";
-      else if (!/^[0-9+\-\s()]{10,15}$/.test(phone.trim()))
-        errs.phone = "Please enter a valid phone number.";
-      if (!email.trim()) errs.email = "Enter your email.";
-      else if (!isValidEmail(email))
-        errs.email = "Enter a valid email address (e.g. you@gmail.com).";
+      if (!username.trim()) {
+        errs.username = "Please enter a username.";
+      } else if (username.trim().length < 3) {
+        errs.username = "Username must be at least 3 characters.";
+      }
+
+      const trimmedPhone = phone.trim();
+      const trimmedEmail = email.trim();
+
+      if (!trimmedPhone && !trimmedEmail) {
+        errs.phone = "Please enter either a phone number or an email.";
+        errs.email = "Please enter either a phone number or an email.";
+      } else {
+        if (trimmedPhone && !/^[0-9+\-\s()]{10,15}$/.test(trimmedPhone)) {
+          errs.phone = "Please enter a valid phone number.";
+        }
+        if (trimmedEmail && !isValidEmail(trimmedEmail)) {
+          errs.email = "Please enter a valid email address.";
+        }
+      }
     }
     if (step === 1) {
       if (password.length < 6)
@@ -298,8 +311,8 @@ export default function CreateAccountScreen({
 
   const copy = [
     {
-      title: "What's your email?",
-      sub: "We'll keep this private. No spam, ever.",
+      title: "What's your contact info?",
+      sub: "Enter your username and email or phone number.",
     },
     {
       title: "Choose a password.",
@@ -327,7 +340,7 @@ export default function CreateAccountScreen({
       await saveTempRegistrationData(tempData);
 
       // Save auth info (will be used after onboarding)
-      await saveAuth(email.trim().toLowerCase(), password);
+      await saveAuth(email.trim().toLowerCase() || phone.trim(), password);
 
       console.log("Registration data saved, proceeding to onboarding");
 
