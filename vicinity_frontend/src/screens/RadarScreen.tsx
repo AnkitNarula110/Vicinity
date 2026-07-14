@@ -420,7 +420,7 @@ function SettingsSheet({ visible, onClose, accent, settings, setSettings }: Sett
 }
 
 const sh = StyleSheet.create({
-  backdrop:    { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.72)' },
+  backdrop:    { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.72)' },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
@@ -707,7 +707,7 @@ export default function RadarScreen({ userProfile, isMatched, onViewProfile, onO
             }]}>
               <View style={[s.avatarInner, { backgroundColor: `${accent}28` }]}>
                 <Text style={s.avatarLetter}>
-                  {userProfile?.name ? userProfile.name[0].toUpperCase() : '?'}
+                  {userProfile?.full_name ? userProfile.full_name[0].toUpperCase() : '?'}
                 </Text>
               </View>
             </Animated.View>

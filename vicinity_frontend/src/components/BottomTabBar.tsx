@@ -1,12 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, ComponentProps } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface TabConfig {
   key: string;
   label: string;
-  icon: keyof typeof Ionicons.mappings | string;
-  iconActive: keyof typeof Ionicons.mappings | string;
+  icon: ComponentProps<typeof Ionicons>['name'];
+  iconActive: ComponentProps<typeof Ionicons>['name'];
 }
 
 const TABS: TabConfig[] = [
