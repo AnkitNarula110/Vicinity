@@ -10,7 +10,10 @@ import {
   ScrollView,
   Image,
   Platform,
+  Modal,
+  Alert,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { V } from "../theme/colors";
 import { F } from "../theme/fonts";
@@ -97,7 +100,37 @@ interface StepPhotoProps {
 }
 
 function StepPhoto({ photoUri, setPhotoUri, accent }: StepPhotoProps) {
-  const pickImage = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleTakePhoto = async () => {
+    if (Platform.OS === "web") {
+      Alert.alert("Unsupported", "Camera is not supported on web browsers. Please select from gallery.");
+      return;
+    }
+
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Denied", "Camera permission is required to take a photo.");
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhotoUri(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.log("Error taking photo", err);
+    }
+  };
+
+  const handleChooseFromLibrary = async () => {
     if (Platform.OS === "web") {
       const input = document.createElement("input");
       input.type = "file";
@@ -111,6 +144,28 @@ function StepPhoto({ photoUri, setPhotoUri, accent }: StepPhotoProps) {
         }
       };
       input.click();
+      return;
+    }
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Denied", "Gallery permission is required to pick a photo.");
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setPhotoUri(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.log("Error picking image", err);
     }
   };
 
@@ -126,7 +181,7 @@ function StepPhoto({ photoUri, setPhotoUri, accent }: StepPhotoProps) {
       <View style={{ height: 36 }} />
 
       <Pressable
-        onPress={pickImage}
+        onPress={() => setModalVisible(true)}
         style={[
           ph.zone,
           photoUri ? ph.zoneHasPhoto : null,
@@ -153,7 +208,7 @@ function StepPhoto({ photoUri, setPhotoUri, accent }: StepPhotoProps) {
             </View>
             <Text style={ph.uploadLabel}>Tap to upload a photo</Text>
             <Text style={ph.uploadSub}>
-              JPG, PNG · Shown blurred until unlocked
+              Camera or Gallery · Shown blurred until unlocked
             </Text>
           </View>
         )}
@@ -164,6 +219,65 @@ function StepPhoto({ photoUri, setPhotoUri, accent }: StepPhotoProps) {
           <Text style={ph.skipText}>Skip for now</Text>
         </Pressable>
       )}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable 
+          style={modalStyle.overlay} 
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={modalStyle.sheet}>
+            <View style={modalStyle.dragHandle} />
+            <Text style={modalStyle.title}>Select Photo Source</Text>
+            <Text style={modalStyle.subtitle}>How would you like to add your photo?</Text>
+
+            <View style={modalStyle.optionsContainer}>
+              <Pressable
+                style={({ pressed }) => [
+                  modalStyle.option,
+                  pressed ? modalStyle.optionPressed : null
+                ]}
+                onPress={() => {
+                  setModalVisible(false);
+                  handleTakePhoto();
+                }}
+              >
+                <View style={[modalStyle.iconCircle, { backgroundColor: `${accent}18` }]}>
+                  <Ionicons name="camera" size={24} color={accent} />
+                </View>
+                <Text style={modalStyle.optionText}>Take a Photo (Camera)</Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  modalStyle.option,
+                  pressed ? modalStyle.optionPressed : null
+                ]}
+                onPress={() => {
+                  setModalVisible(false);
+                  handleChooseFromLibrary();
+                }}
+              >
+                <View style={[modalStyle.iconCircle, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
+                  <Ionicons name="images" size={24} color="#FFF" />
+                </View>
+                <Text style={modalStyle.optionText}>Choose from Gallery</Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={modalStyle.cancelButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={modalStyle.cancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -2023,5 +2137,87 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
+  },
+});
+
+const modalStyle = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: "#161622",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === "ios" ? 40 : 28,
+    alignItems: "center",
+  },
+  dragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    marginBottom: 20,
+  },
+  title: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "700",
+    fontFamily: F.bold,
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 13,
+    fontFamily: F.regular,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  optionsContainer: {
+    width: "100%",
+    gap: 12,
+    marginBottom: 20,
+  },
+  option: {
+    width: "100%",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  optionPressed: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  optionText: {
+    color: "#FFF",
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: F.semibold,
+  },
+  cancelButton: {
+    width: "100%",
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  cancelText: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: F.semibold,
   },
 });
