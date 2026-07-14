@@ -232,24 +232,36 @@ const inp = StyleSheet.create({
 interface LoginScreenProps {
   onLogin: () => void;
   onNavigateToRegister: () => void;
+  onNavigateToForgotPassword: () => void; // Added
+  initialEmailOrPhone?: string;            // Added
 }
 
 // ─── Login Screen ──────────────────────────────────────────────────────────────
 export default function LoginScreen({
   onLogin,
   onNavigateToRegister,
+  onNavigateToForgotPassword,
+  initialEmailOrPhone,
 }: LoginScreenProps) {
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState(initialEmailOrPhone || '');
+
 
   // Entrance animations
   const topOpacity = useRef(new Animated.Value(0)).current;
   const topY = useRef(new Animated.Value(-24)).current;
   const botOpacity = useRef(new Animated.Value(0)).current;
   const botY = useRef(new Animated.Value(32)).current;
+
+  useEffect(() => {
+    if (initialEmailOrPhone) {
+      setEmail(initialEmailOrPhone);
+    }
+  }, [initialEmailOrPhone]);
 
   useEffect(() => {
     Animated.parallel([
@@ -430,7 +442,7 @@ export default function LoginScreen({
           <View style={{ height: 4 }} />
         )}
 
-        <Pressable style={s.forgotBtn}>
+        <Pressable onPress={onNavigateToForgotPassword} style={s.forgotBtn}>
           <Text style={s.forgotText}>Forgot password?</Text>
         </Pressable>
 
