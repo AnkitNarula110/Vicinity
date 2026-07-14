@@ -9,11 +9,13 @@ import {
   Easing,
 } from "react-native";
 import { V } from "../theme/colors";
+import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import { saveAuth, saveTempRegistrationData } from "../storage/userStore";
 import { completeRegistration } from "../api/authApi";
 import { s, inp, mk } from "../styles/CreateAccountStyles";
+import { checkPasswordStrength, generateStrongPassword } from "../utils/password";
 
 // ─── Email validator ───────────────────────────────────────────────────────────
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -444,41 +446,86 @@ export default function CreateAccountScreen({
             </>
           )}
 
-          {step === 1 && (
-            <>
-              <InputField
-                icon="lock-closed-outline"
-                placeholder="Create password (min. 6 chars)"
-                value={password}
-                onChangeText={(t) => {
-                  setPass(t);
-                  setErrors((prev) => ({ ...prev, password: "" }));
-                }}
-                secure={!showPass}
-                showToggle
-                onToggle={() => setShowPass((p) => !p)}
-                hasError={!!errors.password}
-              />
-              {errors.password ? (
-                <Text style={s.errText}>{errors.password}</Text>
-              ) : null}
-              <View style={{ height: 4 }} />
-              <InputField
-                icon="checkmark-circle-outline"
-                placeholder="Confirm password"
-                value={confirm}
-                onChangeText={(t) => {
-                  setConfirm(t);
-                  setErrors((prev) => ({ ...prev, confirm: "" }));
-                }}
-                secure={!showPass}
-                hasError={!!errors.confirm}
-              />
-              {errors.confirm ? (
-                <Text style={s.errText}>{errors.confirm}</Text>
-              ) : null}
-            </>
-          )}
+          {step === 1 && (() => {
+            const strength = checkPasswordStrength(password);
+            return (
+              <>
+                <InputField
+                  icon="lock-closed-outline"
+                  placeholder="Create password (min. 6 chars)"
+                  value={password}
+                  onChangeText={(t) => {
+                    setPass(t);
+                    setErrors((prev) => ({ ...prev, password: "" }));
+                  }}
+                  secure={!showPass}
+                  showToggle
+                  onToggle={() => setShowPass((p) => !p)}
+                  hasError={!!errors.password}
+                />
+                {errors.password ? (
+                  <Text style={s.errText}>{errors.password}</Text>
+                ) : null}
+
+                <Pressable
+                  onPress={() => {
+                    const sug = generateStrongPassword();
+                    setPass(sug);
+                    setConfirm(sug);
+                    setErrors((prev) => ({ ...prev, password: "", confirm: "" }));
+                  }}
+                  style={pw.suggestBtn}
+                >
+                  <Ionicons name="key-outline" size={13} color={V.coral} style={{ marginRight: 4 }} />
+                  <Text style={pw.suggestText}>Suggest a strong password</Text>
+                </Pressable>
+
+                {password.length > 0 && (
+                  <>
+                    <View style={pw.meterContainer}>
+                      <View style={pw.barRow}>
+                        <View style={[pw.bar, { backgroundColor: strength.score >= 1 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                        <View style={[pw.bar, { backgroundColor: strength.score >= 2 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                        <View style={[pw.bar, { backgroundColor: strength.score >= 3 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                      </View>
+                      <Text style={[pw.label, { color: strength.color }]}>{strength.label}</Text>
+                    </View>
+
+                    <View style={pw.checklist}>
+                      <View style={pw.checkItem}>
+                        <Ionicons name={strength.criteria.length ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.length ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                        <Text style={[pw.checkText, strength.criteria.length ? pw.checkTextActive : null]}>At least 8 characters</Text>
+                      </View>
+                      <View style={pw.checkItem}>
+                        <Ionicons name={strength.criteria.uppercase ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.uppercase ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                        <Text style={[pw.checkText, strength.criteria.uppercase ? pw.checkTextActive : null]}>Uppercase & lowercase</Text>
+                      </View>
+                      <View style={pw.checkItem}>
+                        <Ionicons name={strength.criteria.numberOrSymbol ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.numberOrSymbol ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                        <Text style={[pw.checkText, strength.criteria.numberOrSymbol ? pw.checkTextActive : null]}>Numbers or symbols</Text>
+                      </View>
+                    </View>
+                    <View style={{ height: 16 }} />
+                  </>
+                )}
+
+                <InputField
+                  icon="checkmark-circle-outline"
+                  placeholder="Confirm password"
+                  value={confirm}
+                  onChangeText={(t) => {
+                    setConfirm(t);
+                    setErrors((prev) => ({ ...prev, confirm: "" }));
+                  }}
+                  secure={!showPass}
+                  hasError={!!errors.confirm}
+                />
+                {errors.confirm ? (
+                  <Text style={s.errText}>{errors.confirm}</Text>
+                ) : null}
+              </>
+            );
+          })()}
         </Animated.View>
       </Animated.View>
 
@@ -521,3 +568,61 @@ export default function CreateAccountScreen({
     </View>
   );
 }
+
+const pw = StyleSheet.create({
+  suggestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  suggestText: {
+    color: V.coral,
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: F.medium,
+  },
+  meterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  barRow: {
+    flexDirection: 'row',
+    gap: 4,
+    flex: 1,
+  },
+  bar: {
+    height: 4,
+    flex: 1,
+    borderRadius: 2,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: F.semibold,
+    width: 70,
+    textAlign: 'right',
+  },
+  checklist: {
+    marginTop: 12,
+    gap: 6,
+    paddingLeft: 4,
+  },
+  checkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkText: {
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 12,
+    fontFamily: F.regular,
+  },
+  checkTextActive: {
+    color: 'rgba(255,255,255,0.7)',
+  },
+});

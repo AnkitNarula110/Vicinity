@@ -19,6 +19,7 @@ import {
   verifyForgotPasswordCode,
   resetPassword,
 } from "../api/forgotPasswordApi";
+import { checkPasswordStrength, generateStrongPassword } from "../utils/password";
 import { UserProfile } from "../types";
 
 // ─── Validators ───────────────────────────────────────────────────────────────
@@ -604,49 +605,91 @@ export default function ForgotPasswordScreen({
         );
 
       case 2:
-        return (
-          <View style={s.stepContainer}>
-            <Text style={s.title}>New password</Text>
-            <Text style={s.sub}>
-              Set a strong password to protect your account.
-            </Text>
-            <View style={{ height: 32 }} />
+        return (() => {
+          const strength = checkPasswordStrength(newPassword);
+          return (
+            <View style={s.stepContainer}>
+              <Text style={s.title}>New password</Text>
+              <Text style={s.sub}>
+                Set a strong password to protect your account.
+              </Text>
+              <View style={{ height: 32 }} />
 
-            <InputField
-              icon="lock-closed-outline"
-              placeholder="New Password"
-              value={newPassword}
-              onChangeText={(t) => {
-                setNewPassword(t);
-                setErrors({});
-              }}
-              secure={!showPass}
-              showToggle
-              onToggle={() => setShowPass((p) => !p)}
-              hasError={!!errors.password}
-            />
-            {errors.password ? (
-              <Text style={s.errText}>{errors.password}</Text>
-            ) : (
-              <View style={{ height: 12 }} />
-            )}
+              <InputField
+                icon="lock-closed-outline"
+                placeholder="New Password"
+                value={newPassword}
+                onChangeText={(t) => {
+                  setNewPassword(t);
+                  setErrors({});
+                }}
+                secure={!showPass}
+                showToggle
+                onToggle={() => setShowPass((p) => !p)}
+                hasError={!!errors.password}
+              />
+              {errors.password ? (
+                <Text style={s.errText}>{errors.password}</Text>
+              ) : null}
 
-            <InputField
-              icon="lock-closed-outline"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChangeText={(t) => {
-                setConfirmPassword(t);
-                setErrors({});
-              }}
-              secure={!showPass}
-              hasError={!!errors.confirm}
-            />
-            {errors.confirm ? (
-              <Text style={s.errText}>{errors.confirm}</Text>
-            ) : (
-              <View style={{ height: 16 }} />
-            )}
+              <Pressable
+                onPress={() => {
+                  const sug = generateStrongPassword();
+                  setNewPassword(sug);
+                  setConfirmPassword(sug);
+                  setErrors({});
+                }}
+                style={pw.suggestBtn}
+              >
+                <Ionicons name="key-outline" size={13} color={V.coral} style={{ marginRight: 4 }} />
+                <Text style={pw.suggestText}>Suggest a strong password</Text>
+              </Pressable>
+
+              {newPassword.length > 0 && (
+                <>
+                  <View style={pw.meterContainer}>
+                    <View style={pw.barRow}>
+                      <View style={[pw.bar, { backgroundColor: strength.score >= 1 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                      <View style={[pw.bar, { backgroundColor: strength.score >= 2 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                      <View style={[pw.bar, { backgroundColor: strength.score >= 3 ? strength.color : "rgba(255,255,255,0.06)" }]} />
+                    </View>
+                    <Text style={[pw.label, { color: strength.color }]}>{strength.label}</Text>
+                  </View>
+
+                  <View style={pw.checklist}>
+                    <View style={pw.checkItem}>
+                      <Ionicons name={strength.criteria.length ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.length ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                      <Text style={[pw.checkText, strength.criteria.length ? pw.checkTextActive : null]}>At least 8 characters</Text>
+                    </View>
+                    <View style={pw.checkItem}>
+                      <Ionicons name={strength.criteria.uppercase ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.uppercase ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                      <Text style={[pw.checkText, strength.criteria.uppercase ? pw.checkTextActive : null]}>Uppercase & lowercase</Text>
+                    </View>
+                    <View style={pw.checkItem}>
+                      <Ionicons name={strength.criteria.numberOrSymbol ? "checkmark-circle" : "ellipse-outline"} size={12} color={strength.criteria.numberOrSymbol ? "#10B981" : "rgba(255,255,255,0.25)"} />
+                      <Text style={[pw.checkText, strength.criteria.numberOrSymbol ? pw.checkTextActive : null]}>Numbers or symbols</Text>
+                    </View>
+                  </View>
+                  <View style={{ height: 16 }} />
+                </>
+              )}
+
+              <InputField
+                icon="lock-closed-outline"
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChangeText={(t) => {
+                  setConfirmPassword(t);
+                  setErrors({});
+                }}
+                secure={!showPass}
+                hasError={!!errors.confirm}
+              />
+              {errors.confirm ? (
+                <Text style={s.errText}>{errors.confirm}</Text>
+              ) : (
+                <View style={{ height: 16 }} />
+              )}
 
             <View style={{ height: 24 }} />
 
@@ -661,7 +704,8 @@ export default function ForgotPasswordScreen({
               )}
             </BouncyButton>
           </View>
-        );
+          );
+        })();
 
       case 3:
         return (
@@ -925,5 +969,63 @@ const s = StyleSheet.create({
     borderColor: "rgba(240, 99, 90, 0.15)",
     justifyContent: "center",
     alignItems: "center",
+  },
+});
+
+const pw = StyleSheet.create({
+  suggestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  suggestText: {
+    color: V.coral,
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: F.medium,
+  },
+  meterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 8,
+  },
+  barRow: {
+    flexDirection: 'row',
+    gap: 4,
+    flex: 1,
+  },
+  bar: {
+    height: 4,
+    flex: 1,
+    borderRadius: 2,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: F.semibold,
+    width: 70,
+    textAlign: 'right',
+  },
+  checklist: {
+    marginTop: 12,
+    gap: 6,
+    paddingLeft: 4,
+  },
+  checkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkText: {
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 12,
+    fontFamily: F.regular,
+  },
+  checkTextActive: {
+    color: 'rgba(255,255,255,0.7)',
   },
 });
