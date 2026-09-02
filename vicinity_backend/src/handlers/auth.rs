@@ -9,7 +9,7 @@ use sqlx::PgPool;
 
 use crate::{
     models::base_response::BaseResponse,
-    models::login::{LoginRequest, LoginResponse},
+    models::login::{ForgotPasswordRequest, ForgotPasswordResponse, LoginRequest, LoginResponse},
     models::onboarding::{CompleteRegistrationRequest, CompleteRegistrationResponse},
     models::user::User,
 };
@@ -270,3 +270,10 @@ async fn verify_password(
         Err(_) => Ok(false),
     }
 }
+
+// pub async fn forgot_password(
+//     State(pool): State<PgPool>,
+//     Json(payload): Json<ForgotPasswordRequest>,
+// ) -> Result<Json<ForgotPasswordResponse>, (StatusCode, String)> {
+
+// }

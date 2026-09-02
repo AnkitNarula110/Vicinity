@@ -12,3 +12,15 @@ pub struct LoginResponse {
     pub base_response: BaseResponse,
     pub user_data: Option<User>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ForgotPasswordRequest {
+    pub email: Option<String>,
+    pub phone: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ForgotPasswordResponse {
+    pub base_response: BaseResponse,
+    pub otp: String,
+}

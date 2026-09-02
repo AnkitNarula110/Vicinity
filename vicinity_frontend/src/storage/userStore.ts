@@ -29,7 +29,6 @@ export async function loadAuth(): Promise<{
 
 // ─── Profile ───────────────────────────────────────────────────────────────────
 export async function saveProfile(profile: string): Promise<void> {
-  debugger;
   await AsyncStorage.setItem(KEYS.PROFILE, profile);
 }
 

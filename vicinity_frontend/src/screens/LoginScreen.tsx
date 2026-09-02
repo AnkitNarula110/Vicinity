@@ -233,7 +233,7 @@ interface LoginScreenProps {
   onLogin: () => void;
   onNavigateToRegister: () => void;
   onNavigateToForgotPassword: () => void; // Added
-  initialEmailOrPhone?: string;            // Added
+  initialEmailOrPhone?: string; // Added
 }
 
 // ─── Login Screen ──────────────────────────────────────────────────────────────
@@ -248,8 +248,7 @@ export default function LoginScreen({
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState(initialEmailOrPhone || '');
-
+  const [email, setEmail] = useState(initialEmailOrPhone || "");
 
   // Entrance animations
   const topOpacity = useRef(new Animated.Value(0)).current;
@@ -336,7 +335,6 @@ export default function LoginScreen({
 
       // Store the token and user data
       if (response.base_response.success) {
-        debugger;
         //await AsyncStorage.setItem("authToken", response.token);
         await saveProfile(JSON.stringify(response.user_data.onboarding_data));
       }

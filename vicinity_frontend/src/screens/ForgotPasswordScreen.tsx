@@ -247,8 +247,7 @@ function StepDots({ total, current }: StepDotsProps) {
             width: i === current ? 20 : 6,
             height: 6,
             borderRadius: 3,
-            backgroundColor:
-              i === current ? V.coral : "rgba(255,255,255,0.15)",
+            backgroundColor: i === current ? V.coral : "rgba(255,255,255,0.15)",
           }}
         />
       ))}
@@ -280,7 +279,9 @@ export default function ForgotPasswordScreen({
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   // Profile data returned on OTP verification if any
-  const [verifiedProfile, setVerifiedProfile] = useState<UserProfile | null>(null);
+  const [verifiedProfile, setVerifiedProfile] = useState<UserProfile | null>(
+    null,
+  );
 
   // Navigation animations
   const transAnim = useRef(new Animated.Value(1)).current;
@@ -308,7 +309,7 @@ export default function ForgotPasswordScreen({
 
   // OTP Timer countdown
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (step === 1 && resendTimer > 0) {
       interval = setInterval(() => {
         setResendTimer((prev) => prev - 1);
@@ -317,7 +318,10 @@ export default function ForgotPasswordScreen({
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
-  const slideTransition = (nextStep: StepType, direction: "forward" | "back" = "forward") => {
+  const slideTransition = (
+    nextStep: StepType,
+    direction: "forward" | "back" = "forward",
+  ) => {
     const slideOutTo = direction === "forward" ? -20 : 20;
     const slideInFrom = direction === "forward" ? 20 : -20;
 
@@ -377,7 +381,9 @@ export default function ForgotPasswordScreen({
       slideTransition(1, "forward");
     } catch (err: any) {
       setIsLoading(false);
-      setErrors({ identifier: err.message || "Failed to send code. Please try again." });
+      setErrors({
+        identifier: err.message || "Failed to send code. Please try again.",
+      });
     }
   };
 
@@ -402,7 +408,10 @@ export default function ForgotPasswordScreen({
     setIsLoading(true);
     setErrors({});
     try {
-      const response = await verifyForgotPasswordCode(identifier.trim(), otpCode);
+      const response = await verifyForgotPasswordCode(
+        identifier.trim(),
+        otpCode,
+      );
       // Backend returns { token, user } on successful verification
       if (response && response.user) {
         setVerifiedProfile(response.user);
@@ -420,7 +429,9 @@ export default function ForgotPasswordScreen({
       onDirectLogin(verifiedProfile, identifier.trim());
     } else {
       // Fallback in case response didn't supply user profile but user selects direct login
-      setErrors({ otp: "Profile data unavailable. Please reset your password." });
+      setErrors({
+        otp: "Profile data unavailable. Please reset your password.",
+      });
     }
   };
 
@@ -442,7 +453,9 @@ export default function ForgotPasswordScreen({
       slideTransition(3, "forward");
     } catch (err: any) {
       setIsLoading(false);
-      setErrors({ password: err.message || "Failed to reset password. Try again." });
+      setErrors({
+        password: err.message || "Failed to reset password. Try again.",
+      });
     }
   };
 
@@ -454,7 +467,8 @@ export default function ForgotPasswordScreen({
           <View style={s.stepContainer}>
             <Text style={s.title}>Reset password</Text>
             <Text style={s.sub}>
-              Enter the email address or phone number associated with your account.
+              Enter the email address or phone number associated with your
+              account.
             </Text>
             <View style={{ height: 32 }} />
 
@@ -477,13 +491,22 @@ export default function ForgotPasswordScreen({
 
             <View style={{ height: 24 }} />
 
-            <BouncyButton onTap={handleSendOTP} style={s.primaryBtn} disabled={isLoading}>
+            <BouncyButton
+              onTap={handleSendOTP}
+              style={s.primaryBtn}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
                   <Text style={s.primaryBtnText}>Send Verification Code</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#fff" style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={16}
+                    color="#fff"
+                    style={{ marginLeft: 8 }}
+                  />
                 </>
               )}
             </BouncyButton>
@@ -544,11 +567,17 @@ export default function ForgotPasswordScreen({
                 <View style={s.resendRow}>
                   {resendTimer > 0 ? (
                     <Text style={s.resendText}>
-                      Resend code in <Text style={{ color: V.coral }}>{resendTimer}s</Text>
+                      Resend code in{" "}
+                      <Text style={{ color: V.coral }}>{resendTimer}s</Text>
                     </Text>
                   ) : (
                     <Pressable onPress={handleResendOTP}>
-                      <Text style={[s.resendText, { color: V.coral, fontWeight: "600" }]}>
+                      <Text
+                        style={[
+                          s.resendText,
+                          { color: V.coral, fontWeight: "600" },
+                        ]}
+                      >
                         Resend code
                       </Text>
                     </Pressable>
@@ -557,13 +586,22 @@ export default function ForgotPasswordScreen({
 
                 <View style={{ height: 24 }} />
 
-                <BouncyButton onTap={handleVerifyOTP} style={s.primaryBtn} disabled={isLoading}>
+                <BouncyButton
+                  onTap={handleVerifyOTP}
+                  style={s.primaryBtn}
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <>
                       <Text style={s.primaryBtnText}>Verify Code</Text>
-                      <Ionicons name="checkmark-circle-outline" size={18} color="#fff" style={{ marginLeft: 8 }} />
+                      <Ionicons
+                        name="checkmark-circle-outline"
+                        size={18}
+                        color="#fff"
+                        style={{ marginLeft: 8 }}
+                      />
                     </>
                   )}
                 </BouncyButton>
@@ -580,13 +618,23 @@ export default function ForgotPasswordScreen({
                 <Text style={[s.title, { fontSize: 22, textAlign: "center" }]}>
                   Identity Verified!
                 </Text>
-                <Text style={[s.sub, { textAlign: "center", marginBottom: 32 }]}>
+                <Text
+                  style={[s.sub, { textAlign: "center", marginBottom: 32 }]}
+                >
                   Choose how you would like to proceed:
                 </Text>
 
-                <BouncyButton onTap={handleDirectLoginPress} style={s.primaryBtn}>
+                <BouncyButton
+                  onTap={handleDirectLoginPress}
+                  style={s.primaryBtn}
+                >
                   <Text style={s.primaryBtnText}>Log In Directly</Text>
-                  <Ionicons name="log-in-outline" size={18} color="#fff" style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="log-in-outline"
+                    size={18}
+                    color="#fff"
+                    style={{ marginLeft: 8 }}
+                  />
                 </BouncyButton>
 
                 <View style={{ height: 14 }} />
@@ -596,7 +644,12 @@ export default function ForgotPasswordScreen({
                   style={s.ghostBtn}
                 >
                   <Text style={s.ghostBtnText}>Reset Password</Text>
-                  <Ionicons name="key-outline" size={16} color="rgba(255,255,255,0.5)" style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="key-outline"
+                    size={16}
+                    color="rgba(255,255,255,0.5)"
+                    style={{ marginLeft: 8 }}
+                  />
                 </BouncyButton>
               </Animated.View>
             )}
@@ -650,13 +703,22 @@ export default function ForgotPasswordScreen({
 
             <View style={{ height: 24 }} />
 
-            <BouncyButton onTap={handleResetPassword} style={s.primaryBtn} disabled={isLoading}>
+            <BouncyButton
+              onTap={handleResetPassword}
+              style={s.primaryBtn}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
                   <Text style={s.primaryBtnText}>Reset Password</Text>
-                  <Ionicons name="save-outline" size={18} color="#fff" style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="save-outline"
+                    size={18}
+                    color="#fff"
+                    style={{ marginLeft: 8 }}
+                  />
                 </>
               )}
             </BouncyButton>
@@ -665,14 +727,22 @@ export default function ForgotPasswordScreen({
 
       case 3:
         return (
-          <View style={[s.stepContainer, { alignItems: "center", justifyContent: "center" }]}>
+          <View
+            style={[
+              s.stepContainer,
+              { alignItems: "center", justifyContent: "center" },
+            ]}
+          >
             <View style={s.successCircle}>
               <Ionicons name="checkmark-done" size={48} color={V.coral} />
             </View>
             <View style={{ height: 28 }} />
-            <Text style={[s.title, { textAlign: "center" }]}>Password reset</Text>
+            <Text style={[s.title, { textAlign: "center" }]}>
+              Password reset
+            </Text>
             <Text style={[s.sub, { textAlign: "center", maxWidth: "80%" }]}>
-              Your password has been changed successfully. You can now log in with your new credentials.
+              Your password has been changed successfully. You can now log in
+              with your new credentials.
             </Text>
 
             <View style={{ height: 44 }} />
@@ -713,7 +783,12 @@ export default function ForgotPasswordScreen({
         end={{ x: 0.5, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[s.glow, { top: -80, right: -80, backgroundColor: V.coral, opacity: 0.09 }]} />
+      <View
+        style={[
+          s.glow,
+          { top: -80, right: -80, backgroundColor: V.coral, opacity: 0.09 },
+        ]}
+      />
       <View
         style={[
           s.glow,

@@ -119,3 +119,8 @@ export interface UserData {
   onboarding_data: Record<string, any>;
   completed_onboarding: boolean;
 }
+
+export interface GetUserByIdRes {
+  base_response: BaseResponse;
+  user_data: UserData | null;
+}

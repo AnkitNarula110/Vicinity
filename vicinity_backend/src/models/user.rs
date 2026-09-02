@@ -1,3 +1,4 @@
+use crate::models::base_response::BaseResponse;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -33,4 +34,10 @@ pub struct UserDb {
     pub phone: String,
     pub onboarding_data: serde_json::Value,
     pub completed_onboarding: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GetUserByIdRes {
+    pub base_response: BaseResponse,
+    pub user_data: Option<User>,
 }
