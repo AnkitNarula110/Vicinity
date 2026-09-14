@@ -1,93 +1,58 @@
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::{PasswordHasher, SaltString};
-use argon2::Argon2;
-use serde::{Deserialize, Serialize};
-use std::env;
+//! config.rs
+//! ---------
+//! Loads environment variables into a typed `Config` struct.
+//! Behaviour:
+//!   - Reads from `.env` (via dotenvy) and the process environment.
+//!   - Fails fast at startup if a required variable is missing.
+//!   - `config()` returns a cheap clone (Arc inside) so handlers can own it.
 
-#[derive(Debug, Clone)]
-pub struct AppConfig {
-    pub database_url: String,
-    pub redis_url: String,
-    pub jwt_secret: String,
-    pub jwt_expiration: i64,
-    pub fcm_server_key: String,
-    pub port: u16,
-    pub env: String,
+use std::sync::Arc;
+
+/// All runtime configuration. Wrapped in `Arc` so cloning is cheap.
+#[derive(Clone)]
+pub struct Config {
+    pub database_url: String,    // postgres://user:pass@host/db
+    pub redis_url: String,       // redis://host:port
+    pub jwt_secret: String,      // HMAC secret for signing JWTs
+    pub ble_token_ttl_secs: i64, // 1020 = 17 min (spec: 15 min active + 2 min overlap)
+    pub ble_returned_ttl: i64,   // 900 = 15 min returned to the client
+    pub rssi_min_dbm: i32,       // -80: anything weaker is skipped
+    pub match_min_score: f64,    // 70.0: below this, do not notify
+    pub match_max_per_day: i64,  // 5: daily notification cap
+    pub pair_cooldown_secs: i64, // 86400 = 24 h
+    pub venue_presence_ttl: i64, // 300 s (5 min) used when reading venue sets
+    pub meet_location_ttl: i64,  // 900 s = 15 min location reveal window
 }
 
-impl AppConfig {
-    pub fn from_env() -> Self {
-        //Get JWT secret from env or generate one
-        let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| {
-            //Generate a secure secret if not provided
-            generate_jwt_secret()
-        });
+impl Config {
+    /// Reads env vars and returns a boxed `Arc<Config>`.
+    /// Panics on missing required vars — fail fast is intentional.
+    pub fn from_env() -> Arc<Self> {
+        // `dotenvy::dotenv().ok()` silently ignores a missing .env file,
+        // because production environments usually inject real env vars.
+        dotenvy::dotenv().ok();
 
-        Self {
-            database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
-            redis_url: env::var("REDIS_URL").expect("REDIS_URL must be set"),
-            jwt_secret,
-            jwt_expiration: env::var("JWT_EXPIRATION")
-                .unwrap_or_else(|_| "604800".to_string())
-                .parse()
-                .unwrap_or(604800),
-            fcm_server_key: env::var("FCM_SERVER_KEY").unwrap_or_else(|_| "".to_string()),
-            port: env::var("APP_PORT")
-                .unwrap_or_else(|_| "8080".to_string())
-                .parse()
-                .unwrap_or(8080),
-            env: env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+        // `env_or` returns a default when a var is unset — used for tunables.
+        fn env_or(key: &str, default: &str) -> String {
+            std::env::var(key).unwrap_or_else(|_| default.to_string())
         }
-    }
-
-    pub fn get_jwt_secret_bytes(&self) -> &[u8] {
-        self.jwt_secret.as_bytes()
-    }
-}
-
-///Generate a secure jwt secret
-fn generate_jwt_secret() -> String {
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-
-    //generate a random string
-    let secret = argon2
-        .hash_password(
-            format!("vicinity-secret-{}", chrono::Utc::now().timestamp()).as_bytes(),
-            &salt,
-        )
-        .unwrap()
-        .to_string();
-
-    let parts: Vec<&str> = secret.split('$').collect();
-    let hash = parts.last().unwrap_or(&"");
-
-    println!("\n⚠️  JWT_SECRET not found in .env");
-    println!("🔑 Generated new JWT_SECRET: {}", hash);
-    println!("💡 Add this to your .env file:\n");
-    println!("JWT_SECRET={}\n", hash);
-
-    hash.to_string()
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JwtClaims {
-    pub sub: String, // user_id
-    pub exp: i64,    // expiration timestamp
-    pub iat: i64,    // issued at timestamp
-    pub aud: String, // audience
-    pub iss: String, // issuer
-}
-
-impl JwtClaims {
-    pub fn new(user_id: &str, expiration_seconds: i64) -> Self {
-        let now = chrono::Utc::now().timestamp();
-        Self {
-            sub: user_id.to_string(),
-            exp: now + expiration_seconds,
-            iat: now,
-            aud: "vicinity-app".to_string(),
-            iss: "vicinity-backend".to_string(),
+        // `env_required` panics if the var is missing — used for secrets/URLs.
+        fn env_required(key: &str) -> String {
+            std::env::var(key).unwrap_or_else(|_| panic!("missing env var {key}"))
         }
+
+        Arc::new(Self {
+            database_url: env_required("DATABASE_URL"),
+            redis_url: env_required("REDIS_URL"),
+            jwt_secret: env_required("JWT_SECRET"),
+            ble_token_ttl_secs: env_or("BLE_TOKEN_TTL", "1020").parse().unwrap(),
+            ble_returned_ttl: env_or("BLE_RETURNED_TTL", "900").parse().unwrap(),
+            rssi_min_dbm: env_or("RSSI_MIN_DBM", "-80").parse().unwrap(),
+            match_min_score: env_or("MATCH_MIN_SCORE", "70").parse().unwrap(),
+            match_max_per_day: env_or("MATCH_MAX_PER_DAY", "5").parse().unwrap(),
+            pair_cooldown_secs: env_or("PAIR_COOLDOWN_SECS", "86400").parse().unwrap(),
+            venue_presence_ttl: env_or("VENUE_PRESENCE_TTL", "300").parse().unwrap(),
+            meet_location_ttl: env_or("MEET_LOCATION_TTL", "900").parse().unwrap(),
+        })
     }
 }
