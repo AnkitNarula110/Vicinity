@@ -1,7 +1,16 @@
 {
-  "name": "vicinity_rn",
+  "name": "vicinity_frontend",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "prebuild": "expo prebuild --clean",
+    "prebuild:android": "expo prebuild --platform android --clean",
+    "prebuild:ios": "expo prebuild --platform ios --clean"
+  },
   "dependencies": {
     "@expo-google-fonts/dm-serif-display": "^0.4.2",
     "@expo-google-fonts/inter": "^0.4.2",
@@ -9,21 +18,33 @@
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
+    "@react-navigation/bottom-tabs": "^7.0.0",
+    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native-stack": "^7.0.0",
+    "@reduxjs/toolkit": "^2.2.3",
     "axios": "^1.20.0",
+    "buffer": "^6.0.3",
     "expo": "~57.0.2",
+    "expo-build-properties": "~57.0.0",
+    "expo-constants": "~57.0.0",
+    "expo-dev-client": "~57.0.0",
     "expo-font": "~57.0.0",
+    "expo-image-picker": "~57.0.0",
     "expo-linear-gradient": "~57.0.0",
+    "expo-location": "~57.0.0",
+    "expo-notifications": "~57.0.0",
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.0",
-    "react-native-web": "^0.21.2"
-  },
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "react-native-ble-plx": "^3.2.0",
+    "react-native-gesture-handler": "~2.20.0",
+    "react-native-peripheral": "^0.0.3",
+    "react-native-permissions": "^4.1.5",
+    "react-native-safe-area-context": "~5.0.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-web": "^0.21.2",
+    "react-redux": "^9.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

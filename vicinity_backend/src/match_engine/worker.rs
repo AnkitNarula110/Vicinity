@@ -18,10 +18,10 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::config::Config;
+use crate::handlers::fcm;
 use crate::match_engine::queue::MatchJob;
 use crate::match_engine::{gates, scoring, vector};
-use crate::redis_client::Redis;
-use crate::services::fcm; // your FCM wrapper; shown as a stub below
+use crate::redis_client::Redis; // your FCM wrapper; shown as a stub below
 
 pub async fn process_job(
     cfg: &Arc<Config>,

@@ -1,6 +1,6 @@
 use crate::models::{
     base_response::BaseResponse,
-    user::{GetUserByIdRes, User, UserDb},
+    user::{GetUserByIdRes, User},
 };
 use axum::{
     extract::{Path, State},

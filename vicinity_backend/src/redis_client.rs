@@ -66,13 +66,13 @@ impl Redis {
         token: &str,
         user_id: Uuid,
         ttl_secs: i64,
-    ) -> redis<RedisResult()> {
+    ) -> redis::RedisResult<()> {
         let mut conn = self.0.clone();
         // `set_ex` = SET key value EX seconds. Returns "OK".
         conn.set_ex(
             Self::key_ble_token(token),
             user_id.to_string(),
-            ttl_secs as usize,
+            ttl_secs as u64,
         )
         .await
     }
@@ -126,7 +126,7 @@ impl Redis {
     ) -> redis::RedisResult<()> {
         let mut conn = self.0.clone();
         // Removes all members with score in (-inf, cutoff).
-        conn.zremrangebyscore(Self::key_venue_users(venue_id), "-inf", cutoff)
+        conn.zrembyscore(Self::key_venue_users(venue_id), "-inf", cutoff)
             .await
     }
 
@@ -139,7 +139,7 @@ impl Redis {
         ttl_secs: i64,
     ) -> redis::RedisResult<()> {
         let mut conn = self.0.clone();
-        conn.set_ex(Self::key_pair_cooldown(a, b), "1", ttl_secs as usize)
+        conn.set_ex(Self::key_pair_cooldown(a, b), "1", ttl_secs as u64)
             .await
     }
 

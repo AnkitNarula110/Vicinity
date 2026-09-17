@@ -10,7 +10,7 @@ use axum::{extract::State, Json};
 use uuid::Uuid;
 
 use crate::auth::Claims; // JWT claims extracted by the auth middleware
-use crate::ble::models::TokenResponse;
+use crate::ble::model::TokenResponse;
 use crate::error::AppError;
 use crate::state::AppState;
 

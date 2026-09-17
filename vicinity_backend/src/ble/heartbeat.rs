@@ -6,7 +6,7 @@
 
 use crate::auth::Claims;
 use crate::ble::detection::geohash6;
-use crate::ble::models::HeartbeatBody;
+use crate::ble::model::HeartbeatBody;
 use crate::error::AppError;
 use crate::state::AppState;
 use axum::{extract::State, http::StatusCode, Json};

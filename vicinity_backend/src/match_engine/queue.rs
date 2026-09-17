@@ -7,6 +7,7 @@
 //!   - `send().await` awaits only when the channel is full.
 //!
 
+use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use uuid::Uuid;

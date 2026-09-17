@@ -30,7 +30,7 @@ impl Config {
     pub fn from_env() -> Arc<Self> {
         // `dotenvy::dotenv().ok()` silently ignores a missing .env file,
         // because production environments usually inject real env vars.
-        dotenvy::dotenv().ok();
+        dotenv::dotenv().ok();
 
         // `env_or` returns a default when a var is unset — used for tunables.
         fn env_or(key: &str, default: &str) -> String {

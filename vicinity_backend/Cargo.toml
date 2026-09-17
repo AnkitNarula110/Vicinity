@@ -27,7 +27,6 @@ sqlx = { version = "0.7", features = [
     "chrono",
     "json",
     "macros",
-    "migrate",
 ] }
 
 # UUID
@@ -37,7 +36,12 @@ uuid = { version = "1.6", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 
 # Redis
-redis = { version = "0.24", features = ["tokio-comp", "json", "aio"] }
+redis = { version = "0.24", features = [
+    "tokio-comp",
+    "json",
+    "aio",
+    "connection-manager",
+] }
 
 # Authentication - JWT
 jsonwebtoken = "9.2"

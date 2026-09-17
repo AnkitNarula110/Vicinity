@@ -3,7 +3,6 @@ use crate::config::Config;
 use crate::db;
 use crate::match_engine::queue::MatchJobSender;
 use crate::redis_client::Redis;
-use sqlx::PgPool;
 use std::sync::Arc;
 
 //App state that can be shared across all req handlers
@@ -19,10 +18,8 @@ pub struct AppState {
 impl AppState {
     pub async fn bootstrap() -> anyhow::Result<Self> {
         let config = Config::from_env();
-        let db = db::connect(&config.database_url).await?;
-        db::run_migrations(&db).await?;
+        let db = db::create_pool().await; // no `?` — create_pool returns PgPool
         let redis = Redis::connect(&config.redis_url).await?;
-        // Spawn the match worker; we get back only the Sender side.
         let match_tx =
             crate::match_engine::queue::spawn_worker(config.clone(), db.clone(), redis.clone());
         Ok(Self {

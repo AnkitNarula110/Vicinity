@@ -1,28 +1,62 @@
 {
   "expo": {
-    "name": "vicinity_rn",
-    "slug": "vicinity_rn",
+    "name": "Vicinity",
+    "slug": "vicinity_frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "scheme": "vicinity",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0E0B14"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.vicinity.app",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Vicinity uses Bluetooth to detect when someone with matching interests is nearby.",
+        "NSBluetoothPeripheralUsageDescription": "Vicinity broadcasts an anonymous token over Bluetooth.",
+        "NSLocationWhenInUseUsageDescription": "Vicinity uses your coarse location to determine which venue you're at.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Vicinity needs background location to keep detecting nearby users.",
+        "UIBackgroundModes": ["bluetooth-central", "bluetooth-peripheral", "location", "fetch", "remote-notification"]
+      }
     },
     "android": {
+      "package": "com.vicinity.app",
+      "permissions": [
+        "BLUETOOTH", "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN", "BLUETOOTH_ADVERTISE", "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE", "FOREGROUND_SERVICE_CONNECTED_DEVICE",
+        "POST_NOTIFICATIONS", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"
+      ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0E0B14",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+    "web": { "favicon": "./assets/favicon.png" },
     "plugins": [
+      "expo-dev-client",
       "expo-font",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      ["expo-location", {
+        "locationAlwaysAndWhenInUsePermission": "Vicinity needs background location for proximity detection."
+      }],
+      ["expo-notifications", { "color": "#FF7A59" }],
+      ["expo-build-properties", {
+        "ios": { "deploymentTarget": "16.4" },
+        "android": { "minSdkVersion": 26, "targetSdkVersion": 34, "compileSdkVersion": 34 }
+      }]
+    ],
+    "extra": {
+      "apiBaseUrl": "http://192.168.1.10:8080",
+      "wsBaseUrl": "ws://192.168.1.10:8080/ws"
+    }
   }
 }

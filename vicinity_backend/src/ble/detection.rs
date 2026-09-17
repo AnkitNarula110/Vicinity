@@ -9,10 +9,9 @@
 //!   7. Return 200 immediately — scoring is async.
 
 use axum::{extract::State, http::StatusCode, Json};
-use uuid::Uuid;
 
 use crate::auth::Claims;
-use crate::ble::models::DetectionReport;
+use crate::ble::model::DetectionReport;
 use crate::error::AppError;
 use crate::match_engine::queue::MatchJob;
 use crate::state::AppState;
@@ -21,7 +20,7 @@ use crate::state::AppState;
 /// Used as a stand-in venue id until a real venue DB exists.
 /// Swap for a proper geohash crate (`geohash`) in production;
 /// the inline version here avoids an extra dependency for clarity.
-fn geohash6(lat: f64, lng: f64) -> String {
+pub fn geohash6(lat: f64, lng: f64) -> String {
     // Base32 alphabet used by the geohash spec.
     const B32: &[u8] = b"0123456789bcdefghjkmnpqrstuvwxyz";
     let (mut lat_lo, mut lat_hi) = (-90.0_f64, 90.0_f64);
@@ -69,7 +68,7 @@ pub async fn report_detections(
     State(state): State<AppState>,
     claims: Claims,
     Json(body): Json<DetectionReport>,
-) -> RedisResult<StatusCode, AppError> {
+) -> Result<StatusCode, AppError> {
     // The spec passes `scanner_user_id` in the body, but we trust the JWT
     // instead — a client must not be able to impersonate another scanner.
     let scanner = claims.sub;
@@ -93,7 +92,7 @@ pub async fn report_detections(
             continue;
         };
 
-        if detected = scanner {
+        if detected == scanner {
             continue;
         }
 
