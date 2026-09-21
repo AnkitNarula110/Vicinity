@@ -10,16 +10,21 @@
 //!     AppState router first (see below).
 
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, patch, post},
     Router,
 };
 
-use crate::ble::{detection, heartbeat, token};
-use crate::handlers::{
-    auth::{complete_registration, login},
-    user::get_user_by_id,
-};
 use crate::state::AppState;
+use crate::{
+    ble::{detection, heartbeat, token},
+    handlers::{
+        auth::{complete_registration, login},
+        meet::{confirm_meet, get_meet, safe_word},
+        nearby::get_nearby,
+        nudges::{cancel_nudge, list_nudges, send_nudge},
+        user::{get_me, get_photos, get_public_profile, get_user_by_id, patch_me, put_interests},
+    },
+};
 
 /// Sub-router for endpoints that only need the database.
 /// Extracting `State<PgPool>` in these handlers keeps them decoupled
@@ -38,6 +43,19 @@ pub fn ble_router() -> Router<AppState> {
         .route("/ble/token", post(token::issue_token))
         .route("/ble/detections", post(detection::report_detections))
         .route("/ble/heartbeat", post(heartbeat::heartbeat))
+        .route("/users/me", get(get_me).patch(patch_me))
+        .route("/users/me/interests", post(put_interests))
+        .route("/users/:id/profile", get(get_public_profile))
+        .route("/users/:id/photos", get(get_photos))
+        .route("/nearby", get(get_nearby))
+        .route("/matches", get(list_nudges))
+        // ── Nudges ─────────────────────────────────────────────────────
+        .route("/nudges", post(send_nudge).get(list_nudges))
+        .route("/nudges/:id", delete(cancel_nudge))
+        // ── Meets ──────────────────────────────────────────────────────
+        .route("/meets", post(confirm_meet))
+        .route("/meets/:id", get(get_meet))
+        .route("/meets/:id/safe-word", post(safe_word))
 }
 
 /// Build the outer router. Both sides end up as `Router<()>` and merge.

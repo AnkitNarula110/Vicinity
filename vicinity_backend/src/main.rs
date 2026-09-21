@@ -7,6 +7,7 @@ mod handlers;
 mod match_engine;
 mod models;
 mod redis_client;
+mod repos;
 mod routes;
 mod state;
 

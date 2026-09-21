@@ -178,4 +178,74 @@ impl Redis {
         let raw: Option<String> = conn.get(Self::key_user_daily(user_id, date)).await?;
         Ok(raw.and_then(|s| s.parse().ok()).unwrap_or(0))
     }
+
+    /// Invalidate the cached interest vector so it's rebuilt on next read.
+    pub async fn invalidate_vector(&self, user_id: Uuid) -> redis::RedisResult<()> {
+        let mut conn = self.0.clone();
+        let _: i64 = conn.del(Self::key_user_vector(user_id)).await?;
+        Ok(())
+    }
+
+    /// Find which venue a user was last seen in.
+    /// Simple version: scan venue:*:users sets (fine for MVP scale).
+    pub async fn find_user_venue(&self, user_id: Uuid) -> redis::RedisResult<Option<String>> {
+        let mut conn = self.0.clone();
+        let keys: Vec<String> = redis::cmd("KEYS")
+            .arg("venue:*:users")
+            .query_async(&mut conn)
+            .await?;
+
+        for key in keys {
+            let score: Option<f64> = conn.zscore(&key, user_id.to_string()).await?;
+            if score.is_some() {
+                // key format: venue:{id}:users → strip prefix/suffix.
+                let venue = key
+                    .trim_start_matches("venue:")
+                    .trim_end_matches(":users")
+                    .to_string();
+                return Ok(Some(venue));
+            }
+        }
+        Ok(None)
+    }
+
+    /// Write the meet location hash with a 15-min TTL.
+    pub async fn set_meet_location(
+        &self,
+        meet_id: Uuid,
+        _user_a: Uuid,
+        _user_b: Uuid,
+        expires_at: i64,
+    ) -> redis::RedisResult<()> {
+        let mut conn = self.0.clone();
+        let key = Self::key_meet_location(meet_id);
+        let ttl = (expires_at - chrono::Utc::now().timestamp()).max(1) as u64;
+        // Store a placeholder landmark for now. Real version uses a POI lookup.
+        let _: () = redis::cmd("HSET")
+            .arg(&key)
+            .arg("landmark")
+            .arg("Nearby")
+            .query_async(&mut conn)
+            .await?;
+        let _: bool = conn.expire(&key, ttl as i64).await?;
+        Ok(())
+    }
+
+    pub async fn get_meet_location(
+        &self,
+        meet_id: Uuid,
+    ) -> redis::RedisResult<Option<serde_json::Value>> {
+        let mut conn = self.0.clone();
+        let key = Self::key_meet_location(meet_id);
+        let exists: bool = conn.exists(&key).await?;
+        if !exists {
+            return Ok(None);
+        }
+        let landmark: Option<String> = conn.hget(&key, "landmark").await?;
+        Ok(Some(serde_json::json!({
+            "lat": 0.0,
+            "lng": 0.0,
+            "landmark": landmark.unwrap_or_else(|| "Nearby".into()),
+        })))
+    }
 }
