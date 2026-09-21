@@ -3,12 +3,25 @@ use crate::models::{
     user::{GetUserByIdRes, User},
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Query},
     http::StatusCode,
     Json,
 };
-use sqlx::PgPool;
+use sqlx::{PgPool};
 use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+use crate::error::AppError;
+use crate::state::AppState;
+
+#[derive(Debug, Deserialize)]
+pub struct UserIdQuery {
+    pub user_id: Uuid,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MeResponse{
+    pub user: serde_json::Value,
+}
 
 pub async fn get_user_by_id(
     // Get the PostgreSQL connection pool from the application state.
@@ -81,4 +94,12 @@ pub async fn get_user_by_id(
         },
         user_data: Some(user),
     }))
+}
+
+pub async fn get_me(State(state): State<AppState>, Query(query): Query<UserIdQuery>)->
+Result<Json<MeResponse>, AppError>{
+    let user = crate::repos::users:: get_full_profile(&state.db, query.user_id)
+    .await?
+    .ok_or(AppError::NotFound)?;
+    Ok(Json(MeResponse{user}))
 }
