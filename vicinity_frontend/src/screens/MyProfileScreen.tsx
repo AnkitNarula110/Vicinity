@@ -14,8 +14,9 @@ import { V } from "../theme/colors";
 import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
-import { clearAll } from "../storage/userStore";
+import { clearAll, saveProfile } from "../storage/userStore";
 import { UserProfile } from "../types";
+import { getMe } from "../api/users";
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
 interface LabelProps {
@@ -69,6 +70,7 @@ const pl = StyleSheet.create({
 
 // ─── My Profile Screen ─────────────────────────────────────────────────────────
 interface MyProfileScreenProps {
+  userId: string;
   profile: UserProfile | null;
   onEditProfile: () => void;
   onLogout: () => void;
@@ -76,6 +78,7 @@ interface MyProfileScreenProps {
 }
 
 export default function MyProfileScreen({
+  userId,
   profile,
   onEditProfile,
   onLogout,
@@ -102,6 +105,19 @@ export default function MyProfileScreen({
       }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getMe(userId);
+        if (res.base_response.success && res.user_data?.onboarding_data) {
+          await saveProfile(JSON.stringify(res.user_data.onboarding_data));
+        }
+      } catch (err) {
+        console.warn("Profile refresh failed", err);
+      }
+    })();
+  }, [userId]);
 
   const handleLogout = async () => {
     await clearAll();

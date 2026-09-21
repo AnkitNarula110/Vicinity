@@ -4,7 +4,8 @@ import { UserProfile } from "../types";
 const KEYS = {
   AUTH: "vicinity_auth",
   PROFILE: "vicinity_profile",
-  USER_DATA: "userData",
+  USER_DATA: "vicinity_userData",
+  USER_ID: "vicinity_userId",
 };
 
 // ─── Auth ──────────────────────────────────────────────────────────────────────
@@ -87,4 +88,12 @@ export const clearTempRegistrationData = async () => {
     console.error("Error clearing temp registration data:", error);
     return false;
   }
+};
+
+export const saveUserId = async (id: string) => {
+  await AsyncStorage.setItem(KEYS.USER_ID, id);
+};
+
+export const loadUserId = async (): Promise<string | null> => {
+  return AsyncStorage.getItem(KEYS.USER_ID);
 };

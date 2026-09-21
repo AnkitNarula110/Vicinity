@@ -19,8 +19,18 @@ import {
 } from "@expo-google-fonts/inter";
 
 import { V } from "./src/theme/colors";
-import { loadAuth, loadProfile, loadUserData, saveAuth, saveProfile } from "./src/storage/userStore";
+import {
+  loadAuth,
+  loadProfile,
+  loadUserData,
+  saveAuth,
+  saveProfile,
+  saveUserId,
+  loadUserId,
+  clearAll,
+} from "./src/storage/userStore";
 import { UserProfile, Person, Match } from "./src/types";
+import { startBle, stopBle } from "./src/ble";
 
 // Screens
 import LoginScreen from "./src/screens/LoginScreen";
@@ -66,15 +76,17 @@ export default function App() {
   const [unreadMatches, setUnreadMatches] = useState(1); // demo: 1 unread
 
   // Auth sub-screen
-  const [authScreen, setAuthScreen] = useState<"login" | "create_account" | "forgot_password">(
-    "login",
-  );
-  const [prefilledEmailOrPhone, setPrefilledEmailOrPhone] = useState<string>("");
+  const [authScreen, setAuthScreen] = useState<
+    "login" | "create_account" | "forgot_password"
+  >("login");
+  const [prefilledEmailOrPhone, setPrefilledEmailOrPhone] =
+    useState<string>("");
 
   // Overlays (shown above tabs)
   const [overlay, setOverlay] = useState<OverlayName>(null);
   const [activeProfile, setActiveProfile] = useState<any>(null); // Can be Person or Match
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const { width } = useWindowDimensions();
   const isWeb = width > 500;
@@ -83,12 +95,14 @@ export default function App() {
   // ── Boot: check AsyncStorage ─────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
-      debugger;
       const auth = await loadAuth();
       const userData = await loadUserData();
       const profile = await loadProfile();
+      const storedUserId = await loadUserId();
+
       if (userData) {
         setUserProfile(profile);
+        setUserId(storedUserId);
         setAppState("main");
       } else if (auth) {
         setAppState("onboarding");
@@ -98,8 +112,38 @@ export default function App() {
     })();
   }, []);
 
+  // ── BLE: start once we have a userId, stop on logout ─────────────────
+  // Runs whenever `userId` changes. Login sets it → advertising + scanning
+  // begin. Logout sets it to null → cleanup stops everything.
+  useEffect(() => {
+    if (!userId) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        await startBle(userId);
+        // If unmounted or userId changed while starting, tear down.
+        if (cancelled) await stopBle();
+      } catch (err) {
+        console.warn("[BLE] failed to start", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      stopBle().catch(() => {});
+    };
+  }, [userId]);
+
   // ── Handlers ─────────────────────────────────────────────────────────────────
-  const handleLogin = () => setAppState("main");
+  const handleLogin = async (userIdFromApi?: string) => {
+    if (userIdFromApi) {
+      await saveUserId(userIdFromApi);
+      setUserId(userIdFromApi);
+    }
+    setAppState("main");
+  };
   const handleRegisterSuccess = () => setAppState("onboarding");
 
   const handleDirectLogin = async (profile: UserProfile, email: string) => {
@@ -141,8 +185,13 @@ export default function App() {
     setUnreadMatches(0);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Stop BLE before wiping state.
+    await stopBle().catch(() => {});
+    await clearAll();
+
     setUserProfile(null);
+    setUserId(null);
     setActiveProfile(null);
     setIsUnlocked(false);
     setOverlay(null);
@@ -187,6 +236,7 @@ export default function App() {
       case "nearby":
         return (
           <RadarScreen
+            userId={userId ?? ""}
             userProfile={userProfile}
             isMatched={isUnlocked}
             onViewProfile={handleViewProfile}
@@ -196,6 +246,7 @@ export default function App() {
       case "matches":
         return (
           <MatchesScreen
+            userId={userId ?? ""}
             userProfile={userProfile}
             onOpenChat={handleOpenChat}
           />
@@ -203,6 +254,7 @@ export default function App() {
       case "profile":
         return (
           <MyProfileScreen
+            userId={userId ?? ""}
             profile={userProfile}
             onBack={() => setActiveTab("nearby")}
             onEditProfile={() => setAppState("edit")}
@@ -215,11 +267,12 @@ export default function App() {
   };
 
   const renderOverlay = () => {
-    if (!overlay) return null;
+    if (!overlay || !userId) return null;
 
     const screens: Record<string, React.ReactNode> = {
       profile_detail: (
         <ProfileDetailScreen
+          userId={userId ?? ""}
           profile={activeProfile}
           onBack={() => setOverlay(null)}
           onNudgeSent={handleNudgeSent}

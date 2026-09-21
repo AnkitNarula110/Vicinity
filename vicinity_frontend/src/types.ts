@@ -178,3 +178,25 @@ export interface CompleteRegistrationResponse {
   message: string;
   onboarding_complete: boolean;
 }
+
+/// Params for sending a nudge.
+export interface SendNudgeBody {
+  from_user_id: string;
+  to_user_id: string;
+}
+
+/// Response for GET /users/me.
+export interface GetMeResponse {
+  base_response: { success: boolean; message: string };
+  user_data: UserData | null;
+  interests?: { tag: string; weight: number }[];
+}
+
+export interface NearbyUserBackend {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  interest_tags: string[];
+  distance_label: "here" | "close" | "near";
+  match_score: number;
+}

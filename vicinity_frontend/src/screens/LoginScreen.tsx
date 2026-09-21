@@ -230,7 +230,7 @@ const inp = StyleSheet.create({
 
 // ─── Login Screen Props ──────────────────────────────────────────────────────
 interface LoginScreenProps {
-  onLogin: () => void;
+  onLogin: (userId?: string) => void;
   onNavigateToRegister: () => void;
   onNavigateToForgotPassword: () => void; // Added
   initialEmailOrPhone?: string; // Added

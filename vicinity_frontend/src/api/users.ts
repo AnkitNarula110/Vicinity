@@ -3,16 +3,21 @@
 // user_id travels in the body or query — no header.
 
 import { API_URL } from "../config/api";
-import type { UserProfile } from "../types";
+import type { UserProfile, UserData } from "../types";
 
-export const getMe = async (userId: string): Promise<UserProfile> => {
+interface GetMeResponse {
+  base_response: { success: boolean; message: string };
+  user_data: UserData | null;
+  interests?: { tag: string; weight: number }[];
+}
+
+export const getMe = async (userId: string): Promise<GetMeResponse> => {
   const response = await fetch(
     `${API_URL}/users/me?user_id=${encodeURIComponent(userId)}`,
   );
   if (!response.ok)
     throw new Error((await response.text()) || "Profile fetch failed");
-  const data = await response.json();
-  return data.user;
+  return response.json();
 };
 
 export const patchMe = async (

@@ -14,6 +14,7 @@ import { V } from "../theme/colors";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import { Person } from "../types";
+import { sendNudge } from "../api/nudges";
 
 // ─── Section Label ────────────────────────────────────────────────────────────
 interface SectionLabelProps {
@@ -145,12 +146,14 @@ const pl = StyleSheet.create({
 
 // ─── Profile Detail Screen ────────────────────────────────────────────────────
 interface ProfileDetailScreenProps {
+  userId: string;
   profile: Person | null;
   onBack: () => void;
   onNudgeSent: (msg: string) => void;
 }
 
 export default function ProfileDetailScreen({
+  userId,
   profile,
   onBack,
   onNudgeSent,
@@ -159,6 +162,7 @@ export default function ProfileDetailScreen({
     "i love fred again too! let's grab a drink?",
   );
   const [isNudged, setIsNudged] = useState(false);
+  const [sending, setSending] = useState(false);
 
   // Vinyl spin
   const spinVal = useRef(new Animated.Value(0)).current;
@@ -196,10 +200,18 @@ export default function ProfileDetailScreen({
     ]).start();
   }, []);
 
-  const handleNudge = () => {
-    if (nudgeMessage.trim()) {
+  const handleNudge = async () => {
+    if (!profile || sending) return;
+    setSending(true);
+    try {
+      const nudge = await sendNudge(userId, profile.id);
       setIsNudged(true);
-      onNudgeSent(nudgeMessage.trim());
+      // Notify parent after a short delay so the checkmark is visible.
+      setTimeout(() => onNudgeSent(nudge.id), 1200);
+    } catch (err) {
+      console.warn("Nudge failed", err);
+    } finally {
+      setSending(false);
     }
   };
 
