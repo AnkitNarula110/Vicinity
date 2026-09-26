@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { UserProfile } from "../types";
+import { UserData, UserProfile } from "../types";
 
 const KEYS = {
   AUTH: "vicinity_auth",
@@ -33,7 +33,7 @@ export async function saveProfile(profile: string): Promise<void> {
   await AsyncStorage.setItem(KEYS.PROFILE, profile);
 }
 
-export async function loadProfile(): Promise<UserProfile | null> {
+export async function loadProfile(): Promise<UserData | null> {
   try {
     const raw = await AsyncStorage.getItem(KEYS.PROFILE);
     return raw ? JSON.parse(raw) : null;
@@ -42,7 +42,7 @@ export async function loadProfile(): Promise<UserProfile | null> {
   }
 }
 
-export const loadUserData = async (): Promise<UserProfile | null> => {
+export const loadUserData = async (): Promise<UserData | null> => {
   try {
     const raw = await AsyncStorage.getItem(KEYS.USER_DATA);
     if (!raw) return null;
@@ -53,6 +53,13 @@ export const loadUserData = async (): Promise<UserProfile | null> => {
   }
 };
 
+export const saveUserData = async (data: UserData): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(KEYS.USER_DATA, JSON.stringify(data));
+  } catch (error) {
+    console.error("Error saving user data:", error);
+  }
+};
 // ─── Clear everything (logout) ────────────────────────────────────────────────
 export async function clearAll(): Promise<void> {
   await AsyncStorage.multiRemove([KEYS.AUTH, KEYS.PROFILE]);

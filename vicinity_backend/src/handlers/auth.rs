@@ -9,7 +9,7 @@ use sqlx::PgPool;
 
 use crate::{
     models::base_response::BaseResponse,
-    models::login::{ForgotPasswordRequest, ForgotPasswordResponse, LoginRequest, LoginResponse},
+    models::login::{LoginRequest, LoginResponse},
     models::onboarding::{CompleteRegistrationRequest, CompleteRegistrationResponse},
     models::user::User,
 };

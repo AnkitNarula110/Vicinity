@@ -28,10 +28,11 @@ import {
   saveUserId,
   loadUserId,
   clearAll,
+  saveUserData,
 } from "./src/storage/userStore";
-import { UserProfile, Person, Match } from "./src/types";
+import { UserProfile, Person, Match, UserData } from "./src/types";
 import { startBle, stopBle } from "./src/ble";
-
+import {login} from "./src/api/authApi";
 // Screens
 import LoginScreen from "./src/screens/LoginScreen";
 import CreateAccountScreen from "./src/screens/CreateAccountScreen";
@@ -60,7 +61,7 @@ type OverlayName = "profile_detail" | "chat" | "compass" | null;
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>("loading");
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserData | null>(null);
 
   // Load Google Fonts
   const [fontsLoaded] = useFonts({
@@ -90,7 +91,9 @@ export default function App() {
 
   const { width } = useWindowDimensions();
   const isWeb = width > 500;
-  const accent = userProfile?.favColor || V.coral;
+  const accent = userProfile?.onboarding_data.favColor || V.coral;
+
+  console.log({appState});
 
   // ── Boot: check AsyncStorage ─────────────────────────────────────────────────
   useEffect(() => {
@@ -105,8 +108,22 @@ export default function App() {
         setUserId(storedUserId);
         setAppState("main");
       } else if (auth) {
+        debugger;
+      var response = await login({ login: auth.email, password: auth.password || "" });
+      console.log({response});
+      if(response.base_response.success && !storedUserId) {
+        await saveUserId(response.user_data.userid);
+        setUserId(response.user_data.userid);
+      }
+      if(response.base_response.success && !userData) {
+        await saveUserData(response.user_data);
+        setUserProfile(response.user_data);
+      }
+        setAppState("main");
+      } else if(!auth && !userData) {
         setAppState("onboarding");
-      } else {
+      }
+      else {
         setAppState("auth");
       }
     })();
@@ -146,7 +163,7 @@ export default function App() {
   };
   const handleRegisterSuccess = () => setAppState("onboarding");
 
-  const handleDirectLogin = async (profile: UserProfile, email: string) => {
+  const handleDirectLogin = async (profile: UserData, email: string) => {
     await saveAuth(email);
     await saveProfile(JSON.stringify(profile));
     setUserProfile(profile);
@@ -154,13 +171,13 @@ export default function App() {
     setActiveTab("nearby");
   };
 
-  const handleOnboardingComplete = (data: UserProfile) => {
+  const handleOnboardingComplete = (data: UserData) => {
     setUserProfile(data);
     setAppState("main");
     setActiveTab("nearby");
   };
 
-  const handleEditComplete = (data: UserProfile) => {
+  const handleEditComplete = (data: UserData) => {
     setUserProfile(data);
     setAppState("main");
     setActiveTab("profile");
@@ -252,6 +269,8 @@ export default function App() {
           />
         );
       case "profile":
+        debugger;
+        console.log({userId, userProfile});
         return (
           <MyProfileScreen
             userId={userId ?? ""}

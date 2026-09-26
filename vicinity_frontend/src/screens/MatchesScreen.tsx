@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { V } from "../theme/colors";
 import { F } from "../theme/fonts";
 import { Ionicons } from "@expo/vector-icons";
-import { Match, UserProfile, Nudge } from "../types";
+import { Match, UserData, Nudge } from "../types";
 import { getMatches } from "../api/nearby";
 
 // ─── Mock matches ──────────────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ const es = StyleSheet.create({
 // ─── Matches Screen ────────────────────────────────────────────────────────────
 interface MatchesScreenProps {
   userId: string;
-  userProfile: UserProfile | null;
+  userProfile: UserData | null;
   onOpenChat: (match: Match) => void;
 }
 
@@ -184,7 +184,7 @@ export default function MatchesScreen({
   userProfile,
   onOpenChat,
 }: MatchesScreenProps) {
-  const accent = userProfile?.favColor || V.coral;
+  const accent = userProfile?.onboarding_data.favColor || V.coral;
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 

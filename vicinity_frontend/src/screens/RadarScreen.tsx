@@ -16,7 +16,7 @@ import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import ArcRing from "../components/ArcRing";
-import { Person, UserProfile, NearbyUserBackend } from "../types";
+import { Person, UserData, NearbyUserBackend } from "../types";
 import { useCallback } from "react";
 import { getNearby } from "../api/nearby";
 
@@ -1195,7 +1195,7 @@ const t = StyleSheet.create({
 // ─── Main Radar Screen ─────────────────────────────────────────────────────────
 interface RadarScreenProps {
   userId: string;
-  userProfile: UserProfile | null;
+  userProfile: UserData| null;
   isMatched: boolean;
   onViewProfile: (person: Person) => void;
   onOpenMyProfile: () => void;
@@ -1208,7 +1208,7 @@ export default function RadarScreen({
   onViewProfile,
   onOpenMyProfile,
 }: RadarScreenProps) {
-  const accent = userProfile?.favColor || V.coral;
+  const accent = userProfile?.onboarding_data.favColor || V.coral;
   const [wavedIds, setWavedIds] = useState<string[]>([]);
   const [lastWaved, setLastWaved] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
@@ -1402,8 +1402,8 @@ export default function RadarScreen({
             >
               <View style={[s.avatarInner, { backgroundColor: `${accent}28` }]}>
                 <Text style={s.avatarLetter}>
-                  {userProfile?.full_name
-                    ? userProfile.full_name[0].toUpperCase()
+                  {userProfile?.onboarding_data.full_name
+                    ? userProfile.onboarding_data.full_name[0].toUpperCase()
                     : "?"}
                 </Text>
               </View>

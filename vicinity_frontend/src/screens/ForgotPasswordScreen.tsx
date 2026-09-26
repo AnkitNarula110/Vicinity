@@ -19,7 +19,7 @@ import {
   verifyForgotPasswordCode,
   resetPassword,
 } from "../api/forgotPasswordApi";
-import { UserProfile } from "../types";
+import { UserData, UserProfile } from "../types";
 
 // ─── Validators ───────────────────────────────────────────────────────────────
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -258,7 +258,7 @@ function StepDots({ total, current }: StepDotsProps) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 interface ForgotPasswordScreenProps {
   onBackToLogin: (prefilledEmail?: string) => void;
-  onDirectLogin: (profile: UserProfile, email: string) => void;
+  onDirectLogin: (profile: UserData, email: string) => void;
 }
 
 type StepType = 0 | 1 | 2 | 3; // 0: Identifier, 1: OTP & Choice, 2: New Password, 3: Success
@@ -279,7 +279,7 @@ export default function ForgotPasswordScreen({
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   // Profile data returned on OTP verification if any
-  const [verifiedProfile, setVerifiedProfile] = useState<UserProfile | null>(
+  const [verifiedProfile, setVerifiedProfile] = useState<UserData | null>(
     null,
   );
 

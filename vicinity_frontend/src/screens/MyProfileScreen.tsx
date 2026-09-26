@@ -15,7 +15,7 @@ import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import { clearAll, saveProfile } from "../storage/userStore";
-import { UserProfile } from "../types";
+import { UserData, UserProfile } from "../types";
 import { getMe } from "../api/users";
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ const pl = StyleSheet.create({
 // ─── My Profile Screen ─────────────────────────────────────────────────────────
 interface MyProfileScreenProps {
   userId: string;
-  profile: UserProfile | null;
+  profile: UserData | null;
   onEditProfile: () => void;
   onLogout: () => void;
   onBack: () => void;
@@ -84,7 +84,7 @@ export default function MyProfileScreen({
   onLogout,
   onBack,
 }: MyProfileScreenProps) {
-  const accent = profile?.favColor || V.coral;
+  const accent = profile?.onboarding_data.favColor || V.coral;
   console.log({ profile });
 
   // Entrance
@@ -109,6 +109,7 @@ export default function MyProfileScreen({
   useEffect(() => {
     (async () => {
       try {
+        console.log({userId});
         const res = await getMe(userId);
         if (res.base_response.success && res.user_data?.onboarding_data) {
           await saveProfile(JSON.stringify(res.user_data.onboarding_data));
@@ -160,8 +161,8 @@ export default function MyProfileScreen({
           style={[s.hero, { opacity, transform: [{ translateY: slideY }] }]}
         >
           <View style={[s.avatarWrap, { borderColor: `${accent}60` }]}>
-            {profile.photoUri ? (
-              <Image source={{ uri: profile.photoUri }} style={s.avatar} />
+            {profile.onboarding_data.photoUri ? (
+              <Image source={{ uri: profile.onboarding_data.photoUri }} style={s.avatar} />
             ) : (
               <View
                 style={[
@@ -175,9 +176,9 @@ export default function MyProfileScreen({
           </View>
           <View style={s.heroInfo}>
             <Text style={s.heroName}>
-              {profile.full_name}, {profile.dateOfBirth}
+              {profile.onboarding_data.full_name}, {profile.onboarding_data.dateOfBirth}
             </Text>
-            <Text style={s.heroCollege}>{profile.college}</Text>
+            <Text style={s.heroCollege}>{profile.onboarding_data.college}</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -186,7 +187,7 @@ export default function MyProfileScreen({
                 flexWrap: "wrap",
               }}
             >
-              {profile.intent && (
+              {profile.onboarding_data.intent && (
                 <View
                   style={[
                     s.pillSmall,
@@ -197,11 +198,11 @@ export default function MyProfileScreen({
                   ]}
                 >
                   <Text style={[s.pillSmallText, { color: accent }]}>
-                    {profile.intent}
+                    {profile.onboarding_data.intent}
                   </Text>
                 </View>
               )}
-              {profile.mood && (
+              {profile.onboarding_data.mood && (
                 <View
                   style={[
                     s.pillSmall,
@@ -217,7 +218,7 @@ export default function MyProfileScreen({
                       { color: "rgba(255,255,255,0.55)" },
                     ]}
                   >
-                    {profile.mood}
+                    {profile.onboarding_data.mood}
                   </Text>
                 </View>
               )}
@@ -232,22 +233,22 @@ export default function MyProfileScreen({
         </View>
 
         {/* ── Quote ── */}
-        {profile.prompt && (
+        {profile.onboarding_data.prompt && (
           <>
             <Label text="Your line" />
             <View style={[s.quoteCard, { borderColor: `${accent}25` }]}>
               <Text style={[s.quoteOpen, { color: accent }]}>"</Text>
-              <Text style={s.quoteText}>{profile.prompt}</Text>
+              <Text style={s.quoteText}>{profile.onboarding_data.prompt}</Text>
             </View>
           </>
         )}
 
         {/* ── Vibe tags ── */}
-        {profile.vibes?.length > 0 && (
+        {profile.onboarding_data.vibes?.length > 0 && (
           <>
             <Label text="Your vibe" />
             <View style={s.tagWrap}>
-              {profile.vibes.map((v) => (
+              {profile.onboarding_data.vibes.map((v:any) => (
                 <Tag key={v} text={v} accent={accent} />
               ))}
             </View>
@@ -255,7 +256,7 @@ export default function MyProfileScreen({
         )}
 
         {/* ── Music ── */}
-        {profile.playlist && (
+        {profile.onboarding_data.playlist && (
           <>
             <Label text="Anthem" />
             <View style={s.infoCard}>
@@ -266,9 +267,9 @@ export default function MyProfileScreen({
                 style={{ marginRight: 10 }}
               />
               <View>
-                <Text style={s.infoMain}>{profile.playlist}</Text>
-                {profile.artist && (
-                  <Text style={s.infoSub}>{profile.artist}</Text>
+                <Text style={s.infoMain}>{profile.onboarding_data.playlist}</Text>
+                {profile.onboarding_data.artist && (
+                  <Text style={s.infoSub}>{profile.onboarding_data.artist}</Text>
                 )}
               </View>
             </View>
@@ -276,7 +277,7 @@ export default function MyProfileScreen({
         )}
 
         {/* ── Films ── */}
-        {profile.movie && (
+        {profile.onboarding_data.movie && (
           <>
             <Label text="Films & shows" />
             <View style={s.infoCard}>
@@ -286,13 +287,13 @@ export default function MyProfileScreen({
                 color={accent}
                 style={{ marginRight: 10 }}
               />
-              <Text style={s.infoMain}>{profile.movie}</Text>
+              <Text style={s.infoMain}>{profile.onboarding_data.movie}</Text>
             </View>
           </>
         )}
 
         {/* ── Spots ── */}
-        {profile.spots && (
+        {profile.onboarding_data.spots && (
           <>
             <Label text="Hangout spots" />
             <View style={s.infoCard}>
@@ -302,7 +303,7 @@ export default function MyProfileScreen({
                 color={accent}
                 style={{ marginRight: 10 }}
               />
-              <Text style={s.infoMain}>{profile.spots}</Text>
+              <Text style={s.infoMain}>{profile.onboarding_data.spots}</Text>
             </View>
           </>
         )}
@@ -313,7 +314,7 @@ export default function MyProfileScreen({
           <View
             style={[
               s.habitBadge,
-              profile.drinker
+              profile.onboarding_data.drinker
                 ? { backgroundColor: `${accent}18`, borderColor: `${accent}40` }
                 : {
                     backgroundColor: "rgba(255,255,255,0.03)",
@@ -326,7 +327,7 @@ export default function MyProfileScreen({
               style={[
                 s.habitText,
                 {
-                  color: profile.drinker ? "#FFFFFF" : "rgba(255,255,255,0.3)",
+                  color: profile.onboarding_data.drinker ? "#FFFFFF" : "rgba(255,255,255,0.3)",
                 },
               ]}
             >
@@ -336,7 +337,7 @@ export default function MyProfileScreen({
           <View
             style={[
               s.habitBadge,
-              profile.smoker
+              profile.onboarding_data.smoker
                 ? { backgroundColor: `${accent}18`, borderColor: `${accent}40` }
                 : {
                     backgroundColor: "rgba(255,255,255,0.03)",
@@ -348,7 +349,7 @@ export default function MyProfileScreen({
             <Text
               style={[
                 s.habitText,
-                { color: profile.smoker ? "#FFFFFF" : "rgba(255,255,255,0.3)" },
+                { color: profile.onboarding_data.smoker ? "#FFFFFF" : "rgba(255,255,255,0.3)" },
               ]}
             >
               Smoker
