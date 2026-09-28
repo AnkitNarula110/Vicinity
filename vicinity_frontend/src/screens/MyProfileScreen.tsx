@@ -15,7 +15,7 @@ import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import { clearAll, saveProfile } from "../storage/userStore";
-import { UserData, UserProfile } from "../types";
+import { UserData } from "../types";
 import { getMe } from "../api/users";
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ export default function MyProfileScreen({
   onLogout,
   onBack,
 }: MyProfileScreenProps) {
-  const accent = profile?.onboarding_data.favColor || V.coral;
+  const accent = profile?.onboarding_data?.fav_color || V.coral;
   console.log({ profile });
 
   // Entrance
@@ -109,7 +109,7 @@ export default function MyProfileScreen({
   useEffect(() => {
     (async () => {
       try {
-        console.log({userId});
+        console.log({ userId });
         const res = await getMe(userId);
         if (res.base_response.success && res.user_data?.onboarding_data) {
           await saveProfile(JSON.stringify(res.user_data.onboarding_data));
@@ -161,8 +161,11 @@ export default function MyProfileScreen({
           style={[s.hero, { opacity, transform: [{ translateY: slideY }] }]}
         >
           <View style={[s.avatarWrap, { borderColor: `${accent}60` }]}>
-            {profile.onboarding_data.photoUri ? (
-              <Image source={{ uri: profile.onboarding_data.photoUri }} style={s.avatar} />
+            {profile.onboarding_data.profile_picture ? (
+              <Image
+                source={{ uri: profile.onboarding_data.profile_picture }}
+                style={s.avatar}
+              />
             ) : (
               <View
                 style={[
@@ -176,7 +179,8 @@ export default function MyProfileScreen({
           </View>
           <View style={s.heroInfo}>
             <Text style={s.heroName}>
-              {profile.onboarding_data.full_name}, {profile.onboarding_data.dateOfBirth}
+              {profile.onboarding_data.full_name},{" "}
+              {profile.onboarding_data.date_of_birth}
             </Text>
             <Text style={s.heroCollege}>{profile.onboarding_data.college}</Text>
             <View
@@ -244,11 +248,11 @@ export default function MyProfileScreen({
         )}
 
         {/* ── Vibe tags ── */}
-        {profile.onboarding_data.vibes?.length > 0 && (
+        {profile.onboarding_data.vibe_tags?.length > 0 && (
           <>
             <Label text="Your vibe" />
             <View style={s.tagWrap}>
-              {profile.onboarding_data.vibes.map((v:any) => (
+              {profile.onboarding_data.vibe_tags.map((v: any) => (
                 <Tag key={v} text={v} accent={accent} />
               ))}
             </View>
@@ -267,9 +271,13 @@ export default function MyProfileScreen({
                 style={{ marginRight: 10 }}
               />
               <View>
-                <Text style={s.infoMain}>{profile.onboarding_data.playlist}</Text>
+                <Text style={s.infoMain}>
+                  {profile.onboarding_data.playlist}
+                </Text>
                 {profile.onboarding_data.artist && (
-                  <Text style={s.infoSub}>{profile.onboarding_data.artist}</Text>
+                  <Text style={s.infoSub}>
+                    {profile.onboarding_data.artist}
+                  </Text>
                 )}
               </View>
             </View>
@@ -314,7 +322,7 @@ export default function MyProfileScreen({
           <View
             style={[
               s.habitBadge,
-              profile.onboarding_data.drinker
+              profile.onboarding_data.is_drinker
                 ? { backgroundColor: `${accent}18`, borderColor: `${accent}40` }
                 : {
                     backgroundColor: "rgba(255,255,255,0.03)",
@@ -327,7 +335,9 @@ export default function MyProfileScreen({
               style={[
                 s.habitText,
                 {
-                  color: profile.onboarding_data.drinker ? "#FFFFFF" : "rgba(255,255,255,0.3)",
+                  color: profile.onboarding_data.is_drinker
+                    ? "#FFFFFF"
+                    : "rgba(255,255,255,0.3)",
                 },
               ]}
             >
@@ -337,7 +347,7 @@ export default function MyProfileScreen({
           <View
             style={[
               s.habitBadge,
-              profile.onboarding_data.smoker
+              profile.onboarding_data.is_smoker
                 ? { backgroundColor: `${accent}18`, borderColor: `${accent}40` }
                 : {
                     backgroundColor: "rgba(255,255,255,0.03)",
@@ -349,7 +359,11 @@ export default function MyProfileScreen({
             <Text
               style={[
                 s.habitText,
-                { color: profile.onboarding_data.smoker ? "#FFFFFF" : "rgba(255,255,255,0.3)" },
+                {
+                  color: profile.onboarding_data.is_smoker
+                    ? "#FFFFFF"
+                    : "rgba(255,255,255,0.3)",
+                },
               ]}
             >
               Smoker

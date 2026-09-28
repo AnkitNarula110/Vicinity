@@ -3,7 +3,7 @@
 // user_id travels in the body or query — no header.
 
 import { API_URL } from "../config/api";
-import type { UserProfile, UserData } from "../types";
+import type { UserData, OnboardingData } from "../types";
 
 interface GetMeResponse {
   base_response: { success: boolean; message: string };
@@ -23,7 +23,7 @@ export const getMe = async (userId: string): Promise<GetMeResponse> => {
 export const patchMe = async (
   userId: string,
   patch: { bio?: string; display_name?: string },
-): Promise<UserProfile> => {
+): Promise<OnboardingData> => {
   const response = await fetch(`${API_URL}/users/me`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -48,7 +48,7 @@ export const putInterests = async (
     throw new Error((await response.text()) || "Interests failed");
 };
 
-export const getPublicProfile = async (id: string): Promise<UserProfile> => {
+export const getPublicProfile = async (id: string): Promise<OnboardingData> => {
   const response = await fetch(`${API_URL}/users/${id}/profile`);
   if (!response.ok)
     throw new Error((await response.text()) || "Profile fetch failed");

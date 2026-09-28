@@ -30,9 +30,9 @@ import {
   clearAll,
   saveUserData,
 } from "./src/storage/userStore";
-import { UserProfile, Person, Match, UserData } from "./src/types";
+import { Person, Match, UserData } from "./src/types";
 import { startBle, stopBle } from "./src/ble";
-import {login} from "./src/api/authApi";
+import { login } from "./src/api/authApi";
 // Screens
 import LoginScreen from "./src/screens/LoginScreen";
 import CreateAccountScreen from "./src/screens/CreateAccountScreen";
@@ -91,9 +91,9 @@ export default function App() {
 
   const { width } = useWindowDimensions();
   const isWeb = width > 500;
-  const accent = userProfile?.onboarding_data.favColor || V.coral;
+  const accent = userProfile?.onboarding_data.fav_color || V.coral;
 
-  console.log({appState});
+  console.log({ appState });
 
   // ── Boot: check AsyncStorage ─────────────────────────────────────────────────
   useEffect(() => {
@@ -109,21 +109,23 @@ export default function App() {
         setAppState("main");
       } else if (auth) {
         debugger;
-      var response = await login({ login: auth.email, password: auth.password || "" });
-      console.log({response});
-      if(response.base_response.success && !storedUserId) {
-        await saveUserId(response.user_data.userid);
-        setUserId(response.user_data.userid);
-      }
-      if(response.base_response.success && !userData) {
-        await saveUserData(response.user_data);
-        setUserProfile(response.user_data);
-      }
+        var response = await login({
+          login: auth.email,
+          password: auth.password || "",
+        });
+        console.log({ response });
+        if (response.base_response.success && !storedUserId) {
+          await saveUserId(response.user_data.userid);
+          setUserId(response.user_data.userid);
+        }
+        if (response.base_response.success && !userData) {
+          await saveUserData(response.user_data);
+          setUserProfile(response.user_data);
+        }
         setAppState("main");
-      } else if(!auth && !userData) {
+      } else if (!auth && !userData) {
         setAppState("onboarding");
-      }
-      else {
+      } else {
         setAppState("auth");
       }
     })();
@@ -270,7 +272,7 @@ export default function App() {
         );
       case "profile":
         debugger;
-        console.log({userId, userProfile});
+        console.log({ userId, userProfile });
         return (
           <MyProfileScreen
             userId={userId ?? ""}

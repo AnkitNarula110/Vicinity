@@ -1,6 +1,7 @@
 export type UUID = string;
 
 export interface UserProfile {
+  userId: string;
   full_name: string;
   dateOfBirth: string;
   college: string;
@@ -61,6 +62,7 @@ export interface Match {
 }
 
 export interface OnboardingData {
+  user_id: string;
   full_name: string;
   college: string;
   intent: string;
@@ -79,6 +81,12 @@ export interface OnboardingData {
   prompt_index: number;
   prompt: string;
   profile_picture: string | null;
+  date_of_birth: string;
+  fav_color: string;
+  distance: number;
+  direction: number;
+  match_percent: number;
+  pics_unlocked: boolean;
 }
 
 export interface CompleteRegistrationRequest {
@@ -118,7 +126,7 @@ export interface UserData {
   isactive: boolean;
   createddate: Date;
   phone: string;
-  onboarding_data: Record<string, any>;
+  onboarding_data: OnboardingData;
   completed_onboarding: boolean;
 }
 

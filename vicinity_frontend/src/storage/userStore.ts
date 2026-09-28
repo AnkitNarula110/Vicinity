@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { UserData, UserProfile } from "../types";
+import { UserData} from "../types";
 
 const KEYS = {
   AUTH: "vicinity_auth",

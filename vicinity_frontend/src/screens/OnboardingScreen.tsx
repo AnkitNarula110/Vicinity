@@ -22,7 +22,7 @@ import {
   clearTempRegistrationData,
 } from "../storage/userStore";
 import { completeRegistration } from "../api/authApi";
-import { UserData, UserProfile } from "../types";
+import { UserData, OnboardingData } from "../types";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -1398,21 +1398,33 @@ export default function OnboardingScreen({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state — pre-fill from initialData if editing
-  const [name, setName] = useState(initialData?.onboarding_data.full_name ?? "");
-  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(
-    initialData?.onboarding_data.dateOfBirth ? new Date(initialData.onboarding_data.dateOfBirth) : null,
+  const [name, setName] = useState(
+    initialData?.onboarding_data.full_name ?? "",
   );
-  const [college, setCollege] = useState(initialData?.onboarding_data.college || "");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(
+    initialData?.onboarding_data.date_of_birth
+      ? new Date(initialData.onboarding_data.date_of_birth)
+      : null,
+  );
+  const [college, setCollege] = useState(
+    initialData?.onboarding_data.college || "",
+  );
   const [intent, setIntent] = useState(
-    initialData?.onboarding_data.intentIndex !== undefined ? initialData?.onboarding_data.intentIndex : 0,
+    initialData?.onboarding_data.intent_index !== undefined
+      ? initialData?.onboarding_data.intent_index
+      : 0,
   );
   const [colorIndex, setColorIndex] = useState(
-    initialData?.onboarding_data.colorIndex !== undefined ? initialData?.onboarding_data.colorIndex : 0,
+    initialData?.onboarding_data.color_index !== undefined
+      ? initialData?.onboarding_data.color_index
+      : 0,
   );
   const [photoUri, setPhotoUri] = useState<string | null>(
-    initialData?.onboarding_data.photoUri || null,
+    initialData?.onboarding_data.profile_picture || null,
   );
-  const [vibes, setVibes] = useState<string[]>(initialData?.onboarding_data.vibes || []);
+  const [vibes, setVibes] = useState<string[]>(
+    initialData?.onboarding_data.vibe_tags || [],
+  );
   const [playlist, setPlaylist] = useState(
     initialData?.onboarding_data.playlist || "Places — Fred again..",
   );
@@ -1425,18 +1437,27 @@ export default function OnboardingScreen({
   const [spots, setSpots] = useState(
     initialData?.onboarding_data.spots || "TBA Club, Washington Sq",
   );
-  const [isSmoker, setIsSmoker] = useState(initialData?.onboarding_data.smoker || false);
+  const [isSmoker, setIsSmoker] = useState(
+    initialData?.onboarding_data.is_smoker || false,
+  );
   const [isDrinker, setIsDrinker] = useState(
-    initialData?.onboarding_data.drinker !== undefined ? initialData?.onboarding_data.drinker : true,
+    initialData?.onboarding_data.is_drinker !== undefined
+      ? initialData?.onboarding_data.is_smoker
+      : true,
   );
   const [mood, setMood] = useState(
-    initialData?.onboarding_data.moodIndex !== undefined ? initialData?.onboarding_data.moodIndex : 0,
+    initialData?.onboarding_data.mood_index !== undefined
+      ? initialData?.onboarding_data.mood_index
+      : 0,
   );
   const [prompt, setPrompt] = useState(
-    initialData?.onboarding_data.promptRaw || "I order dessert before the main course.",
+    initialData?.onboarding_data.prompt_raw ||
+      "I order dessert before the main course.",
   );
   const [promptIndex, setPromptIndex] = useState(
-    initialData?.onboarding_data.promptIndex !== undefined ? initialData?.onboarding_data.promptIndex : 0,
+    initialData?.onboarding_data.prompt_index !== undefined
+      ? initialData?.onboarding_data.prompt_index
+      : 0,
   );
 
   const accent = COLOR_OPTIONS[colorIndex].color;
@@ -1602,7 +1623,8 @@ export default function OnboardingScreen({
       }
 
       // Build onboarding data
-      const onboardingData = {
+      const onboardingData: OnboardingData = {
+        user_id: "",
         full_name: name.trim() || "Alex",
         college: college.trim() || "NYU",
         intent: INTENT_OPTIONS[intent].label,
@@ -1621,6 +1643,12 @@ export default function OnboardingScreen({
         prompt_index: promptIndex,
         prompt: `${PROMPTS[promptIndex]} ${prompt.trim()}`,
         profile_picture: photoUri,
+        fav_color: accent,
+        date_of_birth: dateOfBirth?.toISOString() ?? "",
+        distance: 0,
+        direction: 0,
+        match_percent: 0,
+        pics_unlocked: false,
       };
 
       // Complete registration with all data
@@ -1639,22 +1667,23 @@ export default function OnboardingScreen({
 
       // Clear temporary data
       await clearTempRegistrationData();
+      onboardingData.user_id = result.userid;
 
       // Save profile locally
       const userData: UserData = {
-  userid: result.userid, // use the actual field returned by your API
-  username: tempData.username,
-  email: tempData.email,
-  password: tempData.password,
-  dob: dateOfBirth|| null,
-  aadharnumber: null,
-  address: null,
-  isactive: true,
-  createddate: new Date(),
-  phone: tempData.phone,
-  onboarding_data: onboardingData,
-  completed_onboarding: true,
-};
+        userid: result.userid, // use the actual field returned by your API
+        username: tempData.username,
+        email: tempData.email,
+        password: tempData.password,
+        dob: dateOfBirth || null,
+        aadharnumber: null,
+        address: null,
+        isactive: true,
+        createddate: new Date(),
+        phone: tempData.phone,
+        onboarding_data: onboardingData,
+        completed_onboarding: true,
+      };
 
       await saveProfile(JSON.stringify(userData));
       onComplete(userData);

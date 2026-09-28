@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct OnboardingData {
+    pub user_id: String,
     pub full_name: String,
     pub college: String,
     pub intent: String,
@@ -22,6 +23,13 @@ pub struct OnboardingData {
     pub prompt_index: i32,
     pub prompt: String,
     pub profile_picture: Option<String>,
+    date_of_birth: String,
+    fav_color: String,
+    photo_uri: Option<String>,
+    distance: i64,
+    direction: i64,
+    match_percent: i64,
+    pics_unlocked: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

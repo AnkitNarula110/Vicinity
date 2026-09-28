@@ -19,7 +19,7 @@ import {
   verifyForgotPasswordCode,
   resetPassword,
 } from "../api/forgotPasswordApi";
-import { UserData, UserProfile } from "../types";
+import { UserData } from "../types";
 
 // ─── Validators ───────────────────────────────────────────────────────────────
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -279,9 +279,7 @@ export default function ForgotPasswordScreen({
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   // Profile data returned on OTP verification if any
-  const [verifiedProfile, setVerifiedProfile] = useState<UserData | null>(
-    null,
-  );
+  const [verifiedProfile, setVerifiedProfile] = useState<UserData | null>(null);
 
   // Navigation animations
   const transAnim = useRef(new Animated.Value(1)).current;
