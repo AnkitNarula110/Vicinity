@@ -24,39 +24,26 @@ pub struct MeResponse {
 }
 
 pub async fn get_user_by_id(
-    // Get the PostgreSQL connection pool from the application state.
-    State(pool): State<PgPool>,
-    // Get the user ID from the URL path.
+    State(state): State<AppState>,
     Path(userid): Path<Uuid>,
 ) -> Result<Json<GetUserByIdRes>, StatusCode> {
     let row = sqlx::query!(
         r#"
-        SELECT 
-            userid,
-            username,
-            email,
-            dob,
-            password,
-            aadharnumber,
-            address,
-            isactive,
-            createddate,
-            phone,
-            onboarding_data,
-            completed_onboarding
-        FROM users 
-        WHERE userid = $1 and isactive = true
+        SELECT userid, username, email, dob, password, aadharnumber,
+               address, isactive, createddate, phone,
+               onboarding_data, completed_onboarding
+        FROM users
+        WHERE userid = $1 AND isactive = true
         "#,
         userid
     )
-    .fetch_optional(&pool)
+    .fetch_optional(&state.db)
     .await
     .map_err(|e| {
         eprintln!("Database error: {}", e);
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
 
-    // If user not found, return error response with success: false
     let row = match row {
         Some(r) => r,
         None => {
@@ -65,12 +52,11 @@ pub async fn get_user_by_id(
                     success: false,
                     message: "User not found".to_string(),
                 },
-                user_data: None, // User data is None when not found
+                user_data: None,
             }));
         }
     };
 
-    // Construct the User object
     let user = User {
         userid: row.userid,
         username: row.username.unwrap_or_default(),
@@ -86,7 +72,6 @@ pub async fn get_user_by_id(
         completed_onboarding: row.completed_onboarding.unwrap_or_default(),
     };
 
-    // Return success response with user data
     Ok(Json(GetUserByIdRes {
         base_response: BaseResponse {
             success: true,
@@ -95,7 +80,6 @@ pub async fn get_user_by_id(
         user_data: Some(user),
     }))
 }
-
 pub async fn get_me(
     State(state): State<AppState>,
     Query(query): Query<UserIdQuery>,

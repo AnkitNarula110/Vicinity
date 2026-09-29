@@ -8,12 +8,12 @@ Follow these steps to run the Vicinity project locally.
 
 Make sure the following are installed:
 
-* Rust
-* Node.js
-* npm
-* PostgreSQL
-* Redis
-* Xcode (for iOS development)
+- Rust
+- Node.js
+- npm
+- PostgreSQL
+- Redis
+- Xcode (for iOS development)
 
 ---
 
@@ -31,7 +31,49 @@ Install/build the Rust dependencies:
 cargo build
 ```
 
-Make sure PostgreSQL and Redis are running.
+### Start Redis
+
+The backend requires Redis to be running on `127.0.0.1:6379`.
+
+If Redis is installed as a Windows service, open **Command Prompt as Administrator** and run:
+
+```cmd
+sc config Redis start= auto
+```
+
+Start the Redis service:
+
+```cmd
+net start Redis
+```
+
+Verify that the Redis service is running:
+
+```cmd
+sc query Redis
+```
+
+The service should show:
+
+```text
+STATE : 4  RUNNING
+```
+
+Test the Redis connection:
+
+```cmd
+redis-cli ping
+```
+
+The expected response is:
+
+```text
+PONG
+```
+
+> If `redis-cli ping` returns `PONG`, Redis is running correctly and the backend can connect to Redis.
+
+Make sure PostgreSQL is also running.
 
 Then start the backend:
 
@@ -105,6 +147,7 @@ npm run web
 
 ```text
 Vicinity/
+
 ├── vicinity_backend/
 │   ├── src/
 │   ├── Cargo.toml
@@ -126,6 +169,8 @@ You need to run the **backend and frontend separately**.
 cd vicinity_backend
 cargo run
 ```
+
+Before running the backend, make sure **PostgreSQL and Redis are running**.
 
 ### Terminal 2 — Frontend
 

@@ -1,8 +1,8 @@
 use argon2::{
-    Argon2, PasswordVerifier,
     password_hash::{PasswordHash, PasswordHasher, SaltString},
+    Argon2, PasswordVerifier,
 };
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{extract::State, http::StatusCode, Json};
 use chrono::Utc;
 use rand::rngs::OsRng;
 use sqlx::PgPool;
@@ -12,15 +12,18 @@ use crate::{
     models::login::{LoginRequest, LoginResponse},
     models::onboarding::{CompleteRegistrationRequest, CompleteRegistrationResponse},
     models::user::User,
+    state::AppState,
 };
 
 pub async fn complete_registration(
-    State(pool): State<PgPool>,
+    State(state): State<AppState>,
     Json(payload): Json<CompleteRegistrationRequest>,
 ) -> Result<Json<CompleteRegistrationResponse>, (StatusCode, String)> {
+    let pool = &state.db; // <-- one local alias keeps the rest identical
+
     // Check if phone already exists
     let phone_exists = sqlx::query!("SELECT phone FROM users WHERE phone = $1", payload.phone)
-        .fetch_optional(&pool)
+        .fetch_optional(pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
@@ -33,7 +36,7 @@ pub async fn complete_registration(
 
     // Check if email already exists
     let email_exists = sqlx::query!("SELECT email FROM users WHERE email = $1", payload.email)
-        .fetch_optional(&pool)
+        .fetch_optional(pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
@@ -56,32 +59,17 @@ pub async fn complete_registration(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Convert onboarding data to JSON
     let onboarding_json = serde_json::to_value(&payload.onboarding_data)
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Insert user with onboarding data as JSON
     let user = sqlx::query!(
         r#"
         INSERT INTO users
         (
-            username,
-            email,
-            dob,
-            password,
-            aadharnumber,
-            address,
-            isactive,
-            createddate,
-            phone,
-            completed_onboarding,
-            onboarding_data
+            username, email, dob, password, aadharnumber, address,
+            isactive, createddate, phone, completed_onboarding, onboarding_data
         )
-        VALUES
-        (
-            $1, $2, $3, $4, $5, $6, true, $7, $8,
-            true, $9
-        )
+        VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, true, $9)
         RETURNING userid
         "#,
         payload.username,
@@ -101,10 +89,8 @@ pub async fn complete_registration(
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    // If there's a profile picture, store it separately
     if let Some(image_base64) = &payload.onboarding_data.profile_picture {
-        // Decode base64 to bytes
-        use base64::{Engine as _, engine::general_purpose::STANDARD};
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
 
         let image_bytes = STANDARD.decode(image_base64).map_err(|e| {
             eprintln!("Base64 decode error: {:?}", e);
@@ -113,17 +99,11 @@ pub async fn complete_registration(
 
         sqlx::query!(
             r#"
-        INSERT INTO profilepictures
-        (
-            userid,
-            profilepicture,
-            content
-        )
-        VALUES
-        ($1, $2, $3)
-        "#,
+            INSERT INTO profilepictures (userid, profilepicture, content)
+            VALUES ($1, $2, $3)
+            "#,
             user.userid,
-            &image_bytes, // Now it's &[u8]
+            &image_bytes,
             "profile_image"
         )
         .execute(&mut *transaction)
@@ -133,6 +113,7 @@ pub async fn complete_registration(
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         })?;
     }
+
     transaction.commit().await.map_err(|e| {
         eprintln!("Transaction commit error: {:?}", e);
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
@@ -146,10 +127,11 @@ pub async fn complete_registration(
 }
 
 pub async fn login(
-    State(pool): State<PgPool>,
+    State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>, (StatusCode, String)> {
-    // 1. Validate input
+    let pool = &state.db;
+
     if payload.login.trim().is_empty() || payload.password.trim().is_empty() {
         return Ok(Json(LoginResponse {
             base_response: BaseResponse {
@@ -160,28 +142,17 @@ pub async fn login(
         }));
     }
 
-    // 2. Query user with explicit type annotations for all fields
     let row = sqlx::query!(
         r#"
-    SELECT 
-        userid,
-        username,
-        email,
-        dob,
-        password,
-        aadharnumber,
-        address,
-        isactive,
-        createddate,
-        phone,
-        onboarding_data,
-        completed_onboarding
-    FROM users 
-    WHERE username = $1 OR email = $1 OR phone = $1
-    "#,
+        SELECT userid, username, email, dob, password, aadharnumber,
+               address, isactive, createddate, phone,
+               onboarding_data, completed_onboarding
+        FROM users
+        WHERE username = $1 OR email = $1 OR phone = $1
+        "#,
         payload.login
     )
-    .fetch_optional(&pool)
+    .fetch_optional(pool)
     .await
     .map_err(|e| {
         eprintln!("Database error: {}", e);
@@ -205,7 +176,7 @@ pub async fn login(
         onboarding_data: r.onboarding_data.unwrap_or_default(),
         completed_onboarding: r.completed_onboarding.unwrap_or_default(),
     });
-    // 3. Check if user exists and is active
+
     let user = match user {
         Some(user) => {
             if !user.isactive {
@@ -230,7 +201,6 @@ pub async fn login(
         }
     };
 
-    // 4. Verify password
     let password_verified = verify_password(&payload.password, &user.password).await?;
 
     if !password_verified {
@@ -243,7 +213,6 @@ pub async fn login(
         }));
     }
 
-    // 5. Return success
     Ok(Json(LoginResponse {
         base_response: BaseResponse {
             success: true,
@@ -252,7 +221,6 @@ pub async fn login(
         user_data: Some(user),
     }))
 }
-
 async fn verify_password(
     password: &str,
     hashed_password: &str,

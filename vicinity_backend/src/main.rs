@@ -24,7 +24,6 @@ async fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt().init();
 
-    let pool = db::create_pool().await;
     let state = state::AppState::bootstrap().await?;
 
     let cors = CorsLayer::new()
