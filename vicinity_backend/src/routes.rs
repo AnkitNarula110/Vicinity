@@ -29,22 +29,20 @@ pub fn auth_and_user_router() -> Router<AppState> {
 /// BLE + feature sub-router.
 pub fn ble_router() -> Router<AppState> {
     Router::new()
-        .route("/ble/token", post(token::issue_token))
-        .route("/ble/detections", post(detection::report_detections))
-        .route("/ble/heartbeat", post(heartbeat::heartbeat))
-        .route("/users/me", get(get_me).patch(patch_me))
-        .route("/users/me/interests", post(put_interests))
-        .route("/users/:id/profile", get(get_public_profile))
-        .route("/users/:id/photos", get(get_photos))
-        .route("/nearby", get(get_nearby))
-        .route("/matches", get(list_nudges))
-        // ── Nudges ─────────────────────────────────────────────────────
-        .route("/nudges", post(send_nudge).get(list_nudges))
-        .route("/nudges/:id", delete(cancel_nudge))
-        // ── Meets ──────────────────────────────────────────────────────
-        .route("/meets", post(confirm_meet))
-        .route("/meets/:id", get(get_meet))
-        .route("/meets/:id/safe-word", post(safe_word))
+        .route("/api/ble/token", post(token::issue_token))
+        .route("/api/ble/detections", post(detection::report_detections))
+        .route("/api/ble/heartbeat", post(heartbeat::heartbeat))
+        .route("/api/users/me", get(get_me).patch(patch_me))
+        .route("/api/users/me/interests", post(put_interests))
+        .route("/api/users/:id/profile", get(get_public_profile))
+        .route("/api/users/:id/photos", get(get_photos))
+        .route("/api/nearby", get(get_nearby))
+        .route("/api/matches", get(list_nudges))
+        .route("/api/nudges", post(send_nudge).get(list_nudges))
+        .route("/api/nudges/:id", delete(cancel_nudge))
+        .route("/api/meets", post(confirm_meet))
+        .route("/api/meets/:id", get(get_meet))
+        .route("/api/meets/:id/safe-word", post(safe_word))
 }
 
 /// Build the outer router. Both sub-routers are `Router<AppState>`,

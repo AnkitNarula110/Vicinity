@@ -1596,6 +1596,7 @@ export default function OnboardingScreen({
   };
 
   const goNext = () => {
+    debugger;
     if (!validateStep()) return;
     step < TOTAL - 1 ? transition(step + 1) : handleComplete();
   };

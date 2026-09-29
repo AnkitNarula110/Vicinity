@@ -123,8 +123,6 @@ export default function App() {
           setUserProfile(response.user_data);
         }
         setAppState("main");
-      } else if (!auth && !userData) {
-        setAppState("onboarding");
       } else {
         setAppState("auth");
       }

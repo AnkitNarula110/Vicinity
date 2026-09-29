@@ -260,6 +260,7 @@ export default function CreateAccountScreen({
   };
 
   const goNext = async () => {
+    debugger;
     if (!validate()) return;
     if (step < 1) {
       Animated.sequence([
@@ -292,6 +293,7 @@ export default function CreateAccountScreen({
         ]).start();
       });
     } else {
+      debugger;
       await handleRegister();
     }
   };
@@ -308,6 +310,7 @@ export default function CreateAccountScreen({
   ];
 
   const handleRegister = async () => {
+    debugger;
     if (isLoading) return;
     setIsLoading(true);
 
@@ -323,24 +326,21 @@ export default function CreateAccountScreen({
         address: null,
       };
 
-      // Save temporary data for onboarding
-      await saveTempRegistrationData(tempData);
+      console.log("💾 Saving temp data:", tempData);
+      const saved = await saveTempRegistrationData(tempData);
+      console.log("✅ Temp data saved:", saved);
 
-      // Save auth info (will be used after onboarding)
       await saveAuth(email.trim().toLowerCase(), password);
+      console.log("✅ Auth saved");
 
-      console.log("Registration data saved, proceeding to onboarding");
-
-      // Navigate to onboarding
       onRegisterSuccess();
     } catch (error: any) {
-      console.log("Registration Error", error);
+      console.error("❌ Registration Error:", error);
       alert(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <View style={s.screen}>
       <View

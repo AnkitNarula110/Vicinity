@@ -1195,7 +1195,7 @@ const t = StyleSheet.create({
 // ─── Main Radar Screen ─────────────────────────────────────────────────────────
 interface RadarScreenProps {
   userId: string;
-  userProfile: UserData| null;
+  userProfile: UserData | null;
   isMatched: boolean;
   onViewProfile: (person: Person) => void;
   onOpenMyProfile: () => void;
@@ -1208,7 +1208,7 @@ export default function RadarScreen({
   onViewProfile,
   onOpenMyProfile,
 }: RadarScreenProps) {
-  const accent = userProfile?.onboarding_data.favColor || V.coral;
+  const accent = userProfile?.onboarding_data.fav_color || V.coral;
   const [wavedIds, setWavedIds] = useState<string[]>([]);
   const [lastWaved, setLastWaved] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
