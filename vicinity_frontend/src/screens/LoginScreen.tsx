@@ -18,7 +18,7 @@ import { V } from "../theme/colors";
 import { F } from "../theme/fonts";
 import BouncyButton from "../widgets/BouncyButton";
 import { login } from "../api/authApi";
-import { saveProfile } from "../storage/userStore";
+import { saveProfile, saveUserId } from "../storage/userStore";
 
 // ─── Email validator ───────────────────────────────────────────────────────────
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -230,7 +230,7 @@ const inp = StyleSheet.create({
 
 // ─── Login Screen Props ──────────────────────────────────────────────────────
 interface LoginScreenProps {
-  onLogin: (userId?: string) => void;
+  onLogin: (userId?: string, userData?: string) => void;
   onNavigateToRegister: () => void;
   onNavigateToForgotPassword: () => void; // Added
   initialEmailOrPhone?: string; // Added
@@ -336,11 +336,12 @@ export default function LoginScreen({
       // Store the token and user data
       if (response.base_response.success) {
         //await AsyncStorage.setItem("authToken", response.token);
-        await saveProfile(JSON.stringify(response.user_data.onboarding_data));
+        await saveProfile(JSON.stringify(response.user_data));
       }
 
-      onLogin();
+      onLogin(response.user_data.userid, JSON.stringify(response.user_data));
     } catch (error: any) {
+      onLogin;
       console.error("Login error:", error);
       Alert.alert(
         "Login Failed",

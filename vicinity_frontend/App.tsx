@@ -44,6 +44,7 @@ import ProfileDetailScreen from "./src/screens/ProfileDetailScreen";
 import ChatScreen from "./src/screens/ChatScreen";
 import CompassScreen from "./src/screens/CompassScreen";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
+import EditProfileScreen from "./src/screens/EditProfileScreen";
 
 // Components
 import BottomTabBar from "./src/components/BottomTabBar";
@@ -108,7 +109,6 @@ export default function App() {
         setUserId(storedUserId);
         setAppState("main");
       } else if (auth) {
-        debugger;
         var response = await login({
           login: auth.email,
           password: auth.password || "",
@@ -154,10 +154,15 @@ export default function App() {
   }, [userId]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
-  const handleLogin = async (userIdFromApi?: string) => {
+  const handleLogin = async (userIdFromApi?: string, userData?: string) => {
     if (userIdFromApi) {
       await saveUserId(userIdFromApi);
       setUserId(userIdFromApi);
+    }
+
+    if (userData) {
+      await saveProfile(userData);
+      setUserProfile(JSON.parse(userData));
     }
     setAppState("main");
   };
@@ -179,6 +184,13 @@ export default function App() {
 
   const handleEditComplete = (data: UserData) => {
     setUserProfile(data);
+    setOverlay(null);
+    setAppState("main");
+    setActiveTab("profile"); // land directly on MyProfile
+  };
+
+  const handleEditCancel = () => {
+    setOverlay(null);
     setAppState("main");
     setActiveTab("profile");
   };
@@ -269,8 +281,6 @@ export default function App() {
           />
         );
       case "profile":
-        debugger;
-        console.log({ userId, userProfile });
         return (
           <MyProfileScreen
             userId={userId ?? ""}
@@ -341,10 +351,15 @@ export default function App() {
 
     // Edit mode — fullscreen, no tabs
     if (appState === "edit") {
+      if (!userProfile) {
+        setAppState("main");
+        return null;
+      }
       return (
-        <OnboardingScreen
-          initialData={userProfile ?? undefined}
+        <EditProfileScreen
+          user={userProfile}
           onComplete={handleEditComplete}
+          onCancel={handleEditCancel}
         />
       );
     }

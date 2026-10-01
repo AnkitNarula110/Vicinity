@@ -315,7 +315,6 @@ export default function CreateAccountScreen({
     setIsLoading(true);
 
     try {
-      // Create temporary registration data
       const tempData = {
         username: username.trim(),
         email: email.trim().toLowerCase(),

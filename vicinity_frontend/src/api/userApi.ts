@@ -1,32 +1,42 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
 import axios, { AxiosError } from "axios";
+import { GetUserByIdResponse } from "../types";
+import { api } from "./client";
+export function getUserById(): Promise<GetUserByIdResponse>;
+export function getUserById(userId: string): Promise<GetUserByIdResponse>;
 
-export const getUserById = async () => {
+// Actual implementation
+export async function getUserById(
+  userId?: string,
+): Promise<GetUserByIdResponse> {
   try {
-    // Get user ID from AsyncStorage
-    const userId = await AsyncStorage.getItem("userId");
+    // Use the provided userId.
+    // If it is not provided, get it from AsyncStorage.
+    const id = userId ?? (await AsyncStorage.getItem("userId"));
 
-    if (!userId) {
+    if (!id) {
       return {
-        success: false,
-        message: "User ID not found in storage",
+        base_response: {
+          success: false,
+          message: "User ID not found in storage",
+        },
         user_data: null,
       };
     }
 
     // Make API call
-    const response = await axios.get(
-      `${API_URL}/api/user/getuserbyid/${userId}`,
+    const response = await axios.get<GetUserByIdResponse>(
+      `${API_URL}/user/getuserbyid/${id}`,
     );
 
-    return response.data; // { base_response: { success, message }, user_data: {...} }
+    return response.data;
   } catch (error) {
     console.error("Error fetching user:", error);
 
-    // Type guard to check if error is an AxiosError
+    // Check if error is an AxiosError
     if (axios.isAxiosError(error)) {
-      // Server responded with error
+      // Server responded with an error
       if (error.response) {
         return {
           base_response: {
@@ -36,8 +46,9 @@ export const getUserById = async () => {
           user_data: null,
         };
       }
-      // Request was made but no response
-      else if (error.request) {
+
+      // Request was made but no response was received
+      if (error.request) {
         return {
           base_response: {
             success: false,
@@ -60,4 +71,20 @@ export const getUserById = async () => {
       user_data: null,
     };
   }
-};
+}
+
+export async function updateProfile(payload: {
+  userid: string;
+  onboarding_data: any;
+}): Promise<{ success: boolean; userid: string }> {
+  const res = await fetch(`${API_URL}/profile/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Update failed: ${txt}`);
+  }
+  return res.json();
+}

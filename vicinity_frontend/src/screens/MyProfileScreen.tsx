@@ -16,7 +16,7 @@ import BouncyButton from "../widgets/BouncyButton";
 import { Ionicons } from "@expo/vector-icons";
 import { clearAll, saveProfile } from "../storage/userStore";
 import { UserData } from "../types";
-import { getMe } from "../api/users";
+import { getUserById } from "../api/userApi";
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
 interface LabelProps {
@@ -110,9 +110,10 @@ export default function MyProfileScreen({
     (async () => {
       try {
         console.log({ userId });
-        const res = await getMe(userId);
-        if (res.base_response.success && res.user_data?.onboarding_data) {
-          await saveProfile(JSON.stringify(res.user_data.onboarding_data));
+        const res = await getUserById(userId);
+        console.log({ res });
+        if (res.base_response.success && res.user_data) {
+          await saveProfile(JSON.stringify(res.user_data));
         }
       } catch (err) {
         console.warn("Profile refresh failed", err);
@@ -146,10 +147,10 @@ export default function MyProfileScreen({
           <Ionicons name="arrow-back" size={20} color="rgba(255,255,255,0.6)" />
         </Pressable>
         <Text style={s.headerTitle}>My Profile</Text>
-        <Pressable onPress={onEditProfile} style={s.editBtn}>
+        {/* <Pressable onPress={onEditProfile} style={s.editBtn}>
           <Ionicons name="create-outline" size={18} color={accent} />
           <Text style={[s.editText, { color: accent }]}>Edit</Text>
-        </Pressable>
+        </Pressable> */}
       </Animated.View>
 
       <ScrollView

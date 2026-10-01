@@ -130,11 +130,6 @@ export interface UserData {
   completed_onboarding: boolean;
 }
 
-export interface GetUserByIdRes {
-  base_response: BaseResponse;
-  user_data: UserData | null;
-}
-
 export interface NearbyUser {
   id: UUID;
   display_name: string;
@@ -207,4 +202,9 @@ export interface NearbyUserBackend {
   interest_tags: string[];
   distance_label: "here" | "close" | "near";
   match_score: number;
+}
+
+export interface GetUserByIdResponse {
+  base_response: BaseResponse;
+  user_data: UserData | null;
 }
